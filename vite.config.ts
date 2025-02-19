@@ -1,4 +1,5 @@
 /// <reference types="vitest" />
+import path from "path"
 import react from '@vitejs/plugin-react';
 import dotenv from 'dotenv';
 import { defineConfig } from 'vite';
@@ -32,6 +33,11 @@ export default defineConfig({
     environment('all', { prefix: 'CANISTER_' }),
     environment('all', { prefix: 'DFX_' }),
   ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   cacheDir: '../node_modules/.vite',
   test: {
     environment: 'jsdom',
