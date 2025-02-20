@@ -13,7 +13,7 @@ export const Navbar = (props: Props) => {
 
   return (
     <>
-      <div className="w-full flex justify-between items-center bg-transparent py-3 px-7 border-b">
+      <div className="w-full flex justify-between items-center bg-transparent py-3 px-7 border-b font-manrope">
         <div className="flex gap-4 items-center">
           <Link
             to="/"
@@ -22,13 +22,13 @@ export const Navbar = (props: Props) => {
             Proof of Research
           </Link>
           <div className="ml-3 hidden sm:flex sm:gap-4">
-            <Link to="" className="hover:text-green-700 duration-200">
+            <Link to="" className=" hover:text-green-700 duration-200 font-light">
               Home
             </Link>
-            <Link to="" className="hover:text-green-700 duration-200">
+            <Link to="" className="hover:text-green-700 duration-200 font-light">
               Survey
             </Link>
-            <Link to="" className="hover:text-green-700 duration-200">
+            <Link to="" className="hover:text-green-700 duration-200 font-light">
               Reward
             </Link>
           </div>
