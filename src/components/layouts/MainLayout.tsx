@@ -6,7 +6,7 @@ type Props = { children: ReactNode };
 
 export const MainLayout = (props: Props) => {
   return (
-    <div className='p-5'>
+    <div className=''>
       <Navbar />
       <main>{props.children}</main>
       <Footer />
