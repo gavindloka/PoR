@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import RegisterPage from '@/pages/RegisterPage';
 import HomePage from '@/pages/HomePage';
 import FormEditor from '@/pages/FormEditor';
+import AnswerForm from '@/pages/AnswerForm';
 
 export const router = createBrowserRouter([
   {
@@ -21,6 +22,10 @@ export const router = createBrowserRouter([
       {
         path: '/FormEditor',
         element: <FormEditor />,
+      },
+      {
+        path: '/AnswerForm',
+        element: <AnswerForm />,
       },
       {
         path: '/',
