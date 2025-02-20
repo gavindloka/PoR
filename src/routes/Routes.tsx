@@ -3,6 +3,7 @@ import App from '@/App';
 import { createBrowserRouter, Navigate } from 'react-router';
 import RegisterPage from '@/pages/RegisterPage';
 import HomePage from '@/pages/HomePage';
+import FormEditor from '@/pages/FormEditor';
 
 export const router = createBrowserRouter([
   {
@@ -11,11 +12,15 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/login',
-          element: <LoginPage />,
+        element: <LoginPage />,
       },
       {
         path: '/register',
-          element: <RegisterPage />,
+        element: <RegisterPage />,
+      },
+      {
+        path: '/FormEditor',
+        element: <FormEditor />,
       },
       {
         path: '/',
