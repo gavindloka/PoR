@@ -1,6 +1,7 @@
 // src/components/QuestionEditor.tsx
 import React from 'react';
 import QuestionTypeSelector from './QuestionTypeSelector';
+import { IoIosCloseCircleOutline } from 'react-icons/io';
 
 export type QuestionType =
   | 'section-title'
@@ -32,7 +33,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
   onRemove,
 }) => {
   return (
-    <div className="border p-4 mb-4 rounded shadow flex w-full bg-white">
+    <div className="border p-4 mb-4 rounded shadow flex w-full bg-white gap-3">
       <div className="w-3/4">
         <div className="flex justify-between items-center">
           <input
@@ -44,7 +45,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 ? 'Enter section title'
                 : 'Enter your question'
             }
-            className={`border p-2 text-white rounded w-full ${
+            className={`border p-2 text-primary bg-secondary rounded w-full ${
               question.type === 'section-title' ? 'text-xl font-bold' : ''
             }`}
           />
@@ -59,7 +60,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 onChange(question.id, { min: parseInt(e.target.value, 10) })
               }
               placeholder="Min"
-              className="border p-2 text-white rounded w-20"
+              className="border p-2 text-primary bg-secondary rounded w-20 "
               min={0}
             />
             <input
@@ -69,7 +70,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 onChange(question.id, { max: parseInt(e.target.value, 10) })
               }
               placeholder="Max"
-              className="border p-2 text-white rounded w-20"
+              className="border p-2 text-primary bg-secondary rounded w-20"
             />
           </div>
         )}
@@ -91,7 +92,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                     onChange(question.id, { options: newOptions });
                   }}
                   placeholder={`Option ${index + 1}`}
-                  className="border text-white  p-2 rounded flex-grow"
+                  className="border text-primary bg-secondary p-2 rounded flex-grow"
                 />
                 <button
                   onClick={() => {
@@ -100,9 +101,9 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                     );
                     onChange(question.id, { options: newOptions });
                   }}
-                  className="ml-2 text-red-500 hover:underline"
+                  className="ml-2 text-red-500 hover:underline hover:cursor-pointer"
                 >
-                  Remove
+                  <IoIosCloseCircleOutline />
                 </button>
               </div>
             ))}

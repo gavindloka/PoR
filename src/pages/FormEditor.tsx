@@ -3,6 +3,7 @@ import QuestionEditor, {
   Question,
   QuestionType,
 } from '@/components/QuestionEditor';
+import SettingsModal from '@/components/SettingModal';
 import React, { useState } from 'react';
 
 const FormEditor: React.FC = () => {
@@ -11,6 +12,12 @@ const FormEditor: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [nextId, setNextId] = useState(1);
   const [showAddMenu, setShowAddMenu] = useState<boolean>(false);
+  const [formSettings, setFormSettings] = useState({
+    ageRange: { min: 18, max: 65 },
+    region: '',
+    occupation: '',
+  });
+  const [showSettings, setShowSettings] = useState(false);
 
   const addQuestion = (type: QuestionType) => {
     const newQuestion: Question = {
@@ -34,7 +41,7 @@ const FormEditor: React.FC = () => {
   };
 
   const exportFormData = () => {
-    const formData = { title, questions };
+    const formData = { title, questions, settings: formSettings };
     const text = JSON.stringify(formData, null, 2);
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -48,22 +55,30 @@ const FormEditor: React.FC = () => {
   return (
     <div className="bg-secondary">
       <div className="container mx-auto p-4 w-full">
-        {editingTitle ? (
-          <input
-            className="text-2xl font-bold text-primary bg-secondary mb-4 border p-2 rounded"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => setEditingTitle(false)}
-            autoFocus
-          />
-        ) : (
-          <h2
-            className="text-2xl font-bold mb-4 cursor-pointer"
-            onClick={() => setEditingTitle(true)}
+        <div className="flex justify-between">
+          {editingTitle ? (
+            <input
+              className="text-2xl font-bold text-primary bg-secondary mb-4 border p-2 rounded"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setEditingTitle(false)}
+              autoFocus
+            />
+          ) : (
+            <h2
+              className="text-2xl font-bold mb-4 cursor-pointer"
+              onClick={() => setEditingTitle(true)}
+            >
+              {title}
+            </h2>
+          )}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 mr-2"
           >
-            {title}
-          </h2>
-        )}
+            Settings
+          </button>
+        </div>
         <div className="w-full ">
           {questions.map((question) => (
             <QuestionEditor
@@ -125,6 +140,15 @@ const FormEditor: React.FC = () => {
           </button>
         </div>
       </div>
+      {showSettings && (
+        <SettingsModal
+          initialAgeRange={formSettings.ageRange}
+          initialRegion={formSettings.region}
+          initialOccupation={formSettings.occupation}
+          onClose={() => setShowSettings(false)}
+          onSave={(settings) => setFormSettings(settings)}
+        />
+      )}
     </div>
   );
 };
