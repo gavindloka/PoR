@@ -1,7 +1,7 @@
 // src/components/QuestionEditor.tsx
 import React from 'react';
 import QuestionTypeSelector from './QuestionTypeSelector';
-import { IoIosCloseCircleOutline } from 'react-icons/io';
+// import { IoIosCloseCircleOutline } from 'react-icons/io';
 
 export type QuestionType =
   | 'section-title'
@@ -103,7 +103,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
                   }}
                   className="ml-2 text-red-500 hover:underline hover:cursor-pointer"
                 >
-                  <IoIosCloseCircleOutline />
+                  {/* <IoIosCloseCircleOutline /> */}
                 </button>
               </div>
             ))}
