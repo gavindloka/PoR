@@ -13,7 +13,7 @@ export const Navbar = (props: Props) => {
 
   return (
     <>
-      <div className="w-full flex justify-between items-center bg-transparent py-3 px-7 border-b font-manrope">
+      <div className="w-full flex justify-between items-center bg-transparent py-3 px-7 border-b font-satoshi">
         <div className="flex gap-4 items-center">
           <Link
             to="/"
@@ -39,7 +39,7 @@ export const Navbar = (props: Props) => {
             <Button
               onClick={() => logout()}
               variant="default"
-              className="bg-green-600 hover:bg-green-700 hover:text-white font-bold"
+              className="bg-green-600 hover:bg-green-700 hover:text-white font-bold rounded-lg font-satoshi"
             >
               Log Out
             </Button>
@@ -47,7 +47,7 @@ export const Navbar = (props: Props) => {
             <Button
               onClick={() => login()}
               variant="default"
-              className=" bg-green-600 hover:bg-green-700 hover:text-white font-bold"
+              className=" bg-green-600 hover:bg-green-700 hover:text-white font-bold rounded-lg font-satoshi"
             >
               Log In
             </Button>
