@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import React from 'react';
+import icpLogo from '../assets/internet-computer-icp-logo.png';
 
 const HomePage = () => {
   const containerVariants = {
@@ -47,7 +48,7 @@ const HomePage = () => {
 
   return (
     <>
-      <div className="w-full m-auto bg-transparent py-20 px-20">
+      <div className="w-full m-auto bg-transparent py-10 px-20">
         <motion.div
           className="flex flex-col justify-center text-center items-center font-satoshi font-bold"
           variants={containerVariants}
@@ -98,52 +99,54 @@ const HomePage = () => {
           </motion.div>
           <motion.div className="w-full flex items-end justify-center gap-10">
             <motion.div
-              className="w-48 h-64 bg-green-700 rounded-xl p-4 flex flex-col gap-3 justify-center"
+              className="w-52 h-72 rounded-xl flex flex-col gap-3 justify-center"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 2 }}
+              style={{
+                backgroundImage: "url('./assets/work1.webp')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundClip: 'content-box',
+              }}
             >
-              <p className="font-bold text-xl text-white">Create Your Survey</p>
-              <p className="text-white font-light">
-                Design decentralized surveys powered by ICP
-              </p>
             </motion.div>
 
             <motion.div
-              className="w-48 h-52 bg-green-600 rounded-xl p-4 flex flex-col gap-3 justify-center"
+              className="w-36 h-52 bg-green-100 rounded-xl p-4 flex flex-col gap-3 justify-center items-center"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 2 }}
             >
-              <p className="font-bold text-xl text-white">Create Your Survey</p>
-              <p className="text-white font-light">
-                Design decentralized surveys powered by ICP
-              </p>
+              <div><img src={icpLogo} alt="" className='w-16 h-16'/></div>
+              <p className="font-bold text-lg text-green-700">Build with ICP</p>
+            
             </motion.div>
-
             <motion.div
               className="w-48 h-40 bg-white rounded-xl border-2 p-4 flex flex-col justify-center"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 2 }}
             >
-              <p>#100</p>
+              <p className='font-bold text-xl'>200+</p>
+              <p className='font-light'>Surveys Completed</p>
             </motion.div>
 
             <motion.div
-              className="w-48 h-52 bg-green-600 rounded-xl p-4 flex flex-col gap-3 justify-center"
+              className="w-36 h-52 bg-green-600 rounded-xl p-4 flex flex-col gap-3 justify-center"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 2.3 }}
             >
-              <p className="font-bold text-xl text-white">Create Your Survey</p>
+              <p className="font-bold text-xl text-white">Participate in Surveys</p>
               <p className="text-white font-light">
-                Design decentralized surveys powered by ICP
+                Your input shapes researches
               </p>
             </motion.div>
 
             <motion.div
-              className="w-48 h-64 bg-green-700 rounded-xl p-4 flex flex-col gap-3 justify-center"
+              className="w-52 h-72 bg-green-700 rounded-xl p-4 flex flex-col gap-3 justify-center"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 2.3 }}
