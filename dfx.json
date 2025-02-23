@@ -8,9 +8,27 @@
       }
     },
     "frontend": {
-      "dependencies": ["backend"],
+      "dependencies": [
+        "backend"
+      ],
       "type": "assets",
-      "source": ["dist/"]
+      "source": [
+        "dist/"
+      ]
+    },
+    "backend_ai": {
+      "metadata": [
+        {
+          "name": "candid:service"
+        }
+      ],
+      "candid": "backend_ai/backend.did",
+      "package": "backend_ai",
+      "type": "custom",
+      "wasm": "target/wasm32-wasi/release/backend_ai-ic.wasm",
+      "build": [
+        "bash build.sh"
+      ]
     }
   },
   "defaults": {

@@ -36,3 +36,9 @@ dist-ssr
 .env.development
 .env.test
 .env.production
+
+target
+
+# AI models and files
+face-recognition.onnx
+version-RFB-320.onnx

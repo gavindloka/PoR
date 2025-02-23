@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "setup": "npm i && dfx canister create backend && dfx generate backend && dfx deploy",
-    "start": "run-p frontend backend",
+    "start": "run-p frontend backend backend_ai",
     "frontend": "vite --port 3000 --host",
     "backend": "mo-dev --generate --deploy -y",
+    "backend_ai": "cargo-watch -w 'src' -q -C ./backend_ai -s 'cd .. && dfx generate && dfx deploy backend_ai -q -y'",
     "build": "tsc && vite build",
     "test": "run-s test:backend test:frontend",
     "test:frontend": "vitest run",
