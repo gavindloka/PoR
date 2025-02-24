@@ -15,7 +15,6 @@ export const Navbar = (props: Props) => {
     <>
       <div className="flex justify-between items-center bg-transparent py-3 px-10 font-satoshi mx-20 mt-3 rounded-xl border-gray-100 border shadow-lg">
         <div className="flex gap-4 items-center">
-          {identity?.getPrincipal && identity.getPrincipal().toString()}
           <Link
             to="/"
             className="font-bold text-xl hover:text-purple-700 duration-200"
