@@ -1,9 +1,17 @@
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
-import React from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useRef } from 'react';
 import icpLogo from '../assets/internet-computer-icp-logo.png';
 import plugLogo from '../assets/plugLogo.png';
 import CountUp from '@/components/CountUp';
+import {
+  Award,
+  Brain,
+  ClipboardList,
+  LineChart,
+  Lock,
+  Share2,
+} from 'lucide-react';
 
 const HomePage = () => {
   const containerVariants = {
@@ -33,16 +41,66 @@ const HomePage = () => {
     hidden: { width: '0%' },
     visible: {
       width: '100%',
-      transition: { delay: 2.3, duration: 0.8, ease: 'easeInOut' },
+      transition: { delay: 1.7, duration: 0.8, ease: 'easeInOut' },
     },
   };
 
+  const howVariants = {
+    hidden: { width: '0%' },
+    visible: {
+      width: '100%',
+      transition: { duration: 0.8, ease: 'easeInOut' },
+    },
+  };
+
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+  const steps = [
+    {
+      icon: ClipboardList,
+      title: 'Design Survey',
+      description:
+        'Create your survey using our intuitive interface powered by DeAI',
+    },
+    {
+      icon: Brain,
+      title: 'AI Processing',
+      description:
+        'Our decentralized AI analyzes responses for deeper insights',
+    },
+    {
+      icon: Lock,
+      title: 'Blockchain Security',
+      description:
+        'All data is securely stored and verified on the ICP blockchain',
+    },
+    {
+      icon: LineChart,
+      title: 'Data Analysis',
+      description:
+        'Get comprehensive analytics and visualizations of your results',
+    },
+    {
+      icon: Share2,
+      title: 'Share Insights',
+      description:
+        'Easily share and collaborate on research findings with peers',
+    },
+    {
+      icon: Award,
+      title: 'Earn Rewards',
+      description: 'Get rewarded for contributing to decentralized research',
+    },
+  ];
+  const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
   return (
     <>
-      <div className="w-full m-auto bg-transparent py-10 px-20">
+      <div className="w-full m-auto bg-transparent pt-10 px-20">
         <motion.div
           className="flex flex-col justify-center text-center items-center font-satoshi font-bold"
-          variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
@@ -99,7 +157,7 @@ const HomePage = () => {
               className="w-64 h-72 rounded-xl flex flex-col gap-1 justify-center items-center bg-gradient-to-bl from-purple-600 to-indigo-900 p-3"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1.8 }}
+              transition={{ duration: 0.5, delay:1.2 }}
             >
               <div>
                 <img src={icpLogo} alt="" className="w-14 h-14" />
@@ -116,7 +174,7 @@ const HomePage = () => {
               className="w-40 h-60 bg-purple-100 rounded-xl flex flex-col gap-3 justify-center items-center"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1.8 }}
+              transition={{ duration: 0.5, delay:1.2 }}
               style={{
                 backgroundImage: "url('./assets/work1.webp')",
                 backgroundSize: 'cover',
@@ -129,7 +187,7 @@ const HomePage = () => {
               className="w-48 h-48 bg-purple-100 rounded-xl border-2 border-purple-300 p-5 flex flex-col justify-center gap-2"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1.8 }}
+              transition={{ duration: 0.5, delay:1.2 }}
             >
               <p className="font-light text-sm text-purple-800">
                 Total Surveys:
@@ -144,14 +202,16 @@ const HomePage = () => {
                   className="count-up-text"
                 />
               </motion.p>
-              <p className="font-light text-sm text-purple-800">and counting...</p>
+              <p className="font-light text-sm text-purple-800">
+                and counting...
+              </p>
             </motion.div>
 
             <motion.div
               className="w-40 h-60 rounded-xl flex flex-col gap-2 justify-center items-center bg-gradient-to-br from-purple-400 to-indigo-700 p-3"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 2.1 }}
+              transition={{ duration: 0.5, delay: 1.4 }}
             >
               <div>
                 <img src={plugLogo} alt="" className="w-14 h-14" />
@@ -166,7 +226,7 @@ const HomePage = () => {
               className="w-64 h-72 rounded-xl flex flex-col gap-3 justify-center bg-gradient-to-br from-purple-600 to-indigo-900 p-6"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 2.1 }}
+              transition={{ duration: 0.5, delay: 1.4 }}
             >
               <div>
                 <p className="font-bold text-2xl text-white">One Face</p>
@@ -179,6 +239,122 @@ const HomePage = () => {
           </motion.div>
         </motion.div>
       </div>
+      <motion.section
+        ref={sectionRef}
+        className="w-full px-20 pt-20 flex flex-col justify-center bg-white"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <motion.span
+          className="w-80 m-auto text-5xl font-bold text-purple-800 text-center mb-16 relative inline-block"
+          variants={itemVariants}
+        >
+          How It Works
+          <motion.span
+            className="h-1 bg-yellow-300 absolute left-0 bottom-0"
+            style={{ width: '100%' }}
+            variants={howVariants}
+          />
+        </motion.span>
+
+        <div className="flex flex-wrap justify-center gap-20 mb-16 max-w-7xl mx-auto px-4">
+        {steps.map((step, index) => (
+        <motion.div
+          key={index}
+          className="bg-white rounded-xl shadow-lg p-6 w-80 relative overflow-hidden"
+          variants={itemVariants}
+          initial="hidden"
+          whileInView="visible"
+          transition={{ delay: 1 }}
+          viewport={{ once: true }}
+          // whileHover={{
+          //   scale: 1.05,
+          //   transition: {
+          //     type: "tween",
+          //     stiffness: 400,
+          //     damping: 10,
+          //   },
+          // }}
+        >
+          <motion.div
+            className="absolute inset-0 bg-purple-50"
+            initial={{ x: "-100%" }}
+            whileInView={{ x: "0%" }}
+            transition={{
+              delay: index * 0.3 + 0.2,
+              duration: 0.5,
+              ease: "easeOut",
+            }}
+            viewport={{ once: true }}
+          />
+
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{
+              delay: index * 0.3 + 0.4,
+              duration: 0.3,
+            }}
+            viewport={{ once: true }}
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              whileInView={{ scale: 1 }}
+              transition={{
+                delay: index * 0.3 + 0.5,
+                type: "spring",
+                stiffness: 200,
+                damping: 10,
+              }}
+              viewport={{ once: true }}
+            >
+              <step.icon className="w-12 h-12 text-purple-600 mb-4" />
+            </motion.div>
+
+            <motion.h3
+              className="text-xl font-semibold text-purple-800 mb-2"
+              initial={{ x: -20, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              transition={{
+                delay: index * 0.3 + 0.6,
+                duration: 0.4,
+              }}
+              viewport={{ once: true }}
+            >
+              {step.title}
+            </motion.h3>
+
+            <motion.p
+              className="text-gray-600"
+              initial={{ x: -20, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              transition={{
+                delay: index * 0.3 + 0.7,
+                duration: 0.4,
+              }}
+              viewport={{ once: true }}
+            >
+              {step.description}
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            className="absolute bottom-0 left-0 h-1 bg-purple-600"
+            initial={{ width: 0 }}
+            whileInView={{ width: "100%" }}
+            transition={{
+              delay: index * 0.3 + 0.3,
+              duration: 0.6,
+              ease: "easeOut",
+            }}
+            viewport={{ once: true }}
+          />
+        </motion.div>
+      ))}
+        </div>
+      </motion.section>
     </>
   );
 };
