@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import React from 'react';
 import icpLogo from '../assets/internet-computer-icp-logo.png';
+import plugLogo from '../assets/plugLogo.png'
 
 const HomePage = () => {
   const containerVariants = {
@@ -75,7 +76,7 @@ const HomePage = () => {
             </motion.span>
           </motion.p>
           <motion.p
-            className="mt-6 text-xl font-light text-gray-500 w-3/6"
+            className="mt-6 text-xl text-gray-500 w-3/6 font-medium"
             variants={itemVariants}
           >
             Design and complete surveys with confidence, powered by DeAI and
@@ -94,7 +95,7 @@ const HomePage = () => {
           </motion.div>
           <motion.div className="w-full flex items-end justify-center gap-10">
             <motion.div
-              className="w-64 h-72 rounded-xl flex flex-col gap-1 justify-center items-center bg-gradient-to-br from-purple-600 to-indigo-900 p-3"
+              className="w-64 h-72 rounded-xl flex flex-col gap-1 justify-center items-center bg-gradient-to-bl from-purple-600 to-indigo-900 p-3"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.8 }}
@@ -132,23 +133,24 @@ const HomePage = () => {
               <p className="font-light text-sm text-purple-800">
                 Total Surveys:
               </p>
-              <p className="font-bold text-5xl text-purple-700">200+</p>
+              <p className="font-bold text-5xl text-indigo-700">200+</p>
               <p className="font-light text-xs text-purple-800">and counting</p>
             </motion.div>
 
             <motion.div
-              className="w-40 h-60 bg-purple-600 rounded-xl flex flex-col justify-center"
+              className="w-40 h-60 rounded-xl flex flex-col gap-2 justify-center items-center bg-gradient-to-br from-purple-600 to-indigo-900 p-3"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 2.1 }}
-              style={{
-                backgroundImage: "url('./assets/work2.webp')",
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundClip: 'content-box',
-              }}
-            ></motion.div>
+            >
+              <div>
+                <img src={plugLogo} alt="" className="w-14 h-14" />
+              </div>
+              <p className="font-bold text-xl text-white">On-Chain Wallet</p>
+              <p className="text-purple-100 font-light text-sm">
+                using Plug Wallet
+              </p>
+            </motion.div>
 
             <motion.div
               className="w-64 h-72 rounded-xl flex flex-col gap-3 justify-center bg-gradient-to-br from-purple-600 to-indigo-900 p-6"
