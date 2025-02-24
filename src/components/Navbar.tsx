@@ -2,6 +2,7 @@ import { useAuth } from '@ic-reactor/react';
 import React from 'react';
 import { Link } from 'react-router';
 import { Button } from './ui/button';
+import { WalletButton } from './WalletButton';
 
 type Props = {};
 
@@ -22,19 +23,31 @@ export const Navbar = (props: Props) => {
             Proof of Research
           </Link>
           <div className="ml-3 hidden sm:flex sm:gap-4">
-            <Link to="" className=" hover:text-purple-700 duration-200 font-light">
+            <Link
+              to=""
+              className=" hover:text-purple-700 duration-200 font-light"
+            >
               Home
             </Link>
-            <Link to="" className="hover:text-purple-700 duration-200 font-light">
+            <Link
+              to=""
+              className="hover:text-purple-700 duration-200 font-light"
+            >
               Browse
             </Link>
-            <Link to="" className="hover:text-purple-700 duration-200 font-light">
+            <Link
+              to=""
+              className="hover:text-purple-700 duration-200 font-light"
+            >
               Create
             </Link>
           </div>
         </div>
 
-        <div>
+        <div className="flex gap-3">
+          <div>
+            <WalletButton />
+          </div>
           {authenticated ? (
             <Button
               onClick={() => logout()}
