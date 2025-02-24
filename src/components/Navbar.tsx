@@ -1,7 +1,8 @@
 import { useAuth } from '@ic-reactor/react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Button } from './ui/button';
+import { WalletButton } from './WalletButton';
 
 type Props = {};
 
@@ -11,35 +12,62 @@ export const Navbar = (props: Props) => {
     onLoginError: (error) => console.error(`Login failed: ${error}`),
   });
 
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
+
+  useEffect(() => {
+    const controlNavbar = () => {
+      const currentScrollY = window.scrollY
+
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        setIsVisible(true)
+      }
+      else if (currentScrollY > lastScrollY) {
+        setIsVisible(false)
+      }
+
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener("scroll", controlNavbar)
+
+    return () => {
+      window.removeEventListener("scroll", controlNavbar)
+    }
+  }, [lastScrollY])
+
   return (
-    <>
-      <div className="flex justify-between items-center bg-transparent py-3 px-10 font-satoshi mx-20 mt-3 rounded-xl border-gray-100 border shadow-lg">
+    <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+      isVisible ? "translate-y-0" : "-translate-y-full"
+    }`}>
+      <div className="bg-white mx-4 md:mx-20 flex justify-between items-center py-3 px-10 font-satoshi mt-3 rounded-xl border-gray-100 border shadow-lg" 
+      >
         <div className="flex gap-4 items-center">
-          <Link
-            to="/"
-            className="font-bold text-xl hover:text-green-700 duration-200"
-          >
+          <Link to="/" className="font-bold text-xl hover:text-purple-700 duration-200">
             Proof of Research
           </Link>
           <div className="ml-3 hidden sm:flex sm:gap-4">
-            <Link to="" className=" hover:text-green-700 duration-200 font-light">
+            <Link to="/" className="hover:text-purple-700 duration-200 font-normal">
               Home
             </Link>
-            <Link to="" className="hover:text-green-700 duration-200 font-light">
+            <Link to="/browse" className="hover:text-purple-700 duration-200 font-normal">
               Browse
             </Link>
-            <Link to="" className="hover:text-green-700 duration-200 font-light">
+            <Link to="/create" className="hover:text-purple-700 duration-200 font-normal">
               Create
             </Link>
           </div>
         </div>
 
-        <div>
+        <div className='flex gap-3'>
+          <div>
+            <WalletButton />
+          </div>
           {authenticated ? (
             <Button
-              onClick={() => logout()}
+              onClick={()=>logout()}
               variant="default"
-              className="bg-green-600 hover:bg-green-700 hover:text-white font-bold rounded-lg font-satoshi"
+              className="bg-purple-700 hover:bg-purple-800 hover:text-white font-bold rounded-lg font-satoshi"
             >
               Log Out
             </Button>
@@ -52,13 +80,13 @@ export const Navbar = (props: Props) => {
                     : "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943/#authorize"
               })}
               variant="default"
-              className=" bg-green-600 hover:bg-green-700 hover:text-white font-bold rounded-lg font-satoshi"
+              className="bg-purple-700 hover:bg-purple-800 hover:text-white font-bold rounded-lg font-satoshi"
             >
               Log In
             </Button>
           )}
         </div>
       </div>
-    </>
-  );
+    </div>
+  )
 };
