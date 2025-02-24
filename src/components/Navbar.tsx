@@ -17,18 +17,18 @@ export const Navbar = (props: Props) => {
         <div className="flex gap-4 items-center">
           <Link
             to="/"
-            className="font-bold text-xl hover:text-green-700 duration-200"
+            className="font-bold text-xl hover:text-purple-700 duration-200"
           >
             Proof of Research
           </Link>
           <div className="ml-3 hidden sm:flex sm:gap-4">
-            <Link to="" className=" hover:text-green-700 duration-200 font-light">
+            <Link to="" className=" hover:text-purple-700 duration-200 font-light">
               Home
             </Link>
-            <Link to="" className="hover:text-green-700 duration-200 font-light">
+            <Link to="" className="hover:text-purple-700 duration-200 font-light">
               Browse
             </Link>
-            <Link to="" className="hover:text-green-700 duration-200 font-light">
+            <Link to="" className="hover:text-purple-700 duration-200 font-light">
               Create
             </Link>
           </div>
@@ -39,7 +39,7 @@ export const Navbar = (props: Props) => {
             <Button
               onClick={() => logout()}
               variant="default"
-              className="bg-green-600 hover:bg-green-700 hover:text-white font-bold rounded-lg font-satoshi"
+              className="bg-purple-700 hover:bg-purple-800 hover:text-white font-bold rounded-lg font-satoshi"
             >
               Log Out
             </Button>
@@ -47,7 +47,7 @@ export const Navbar = (props: Props) => {
             <Button
               onClick={() => login()}
               variant="default"
-              className=" bg-green-600 hover:bg-green-700 hover:text-white font-bold rounded-lg font-satoshi"
+              className=" bg-purple-700 hover:bg-purple-800 hover:text-white font-bold rounded-lg font-satoshi"
             >
               Log In
             </Button>
