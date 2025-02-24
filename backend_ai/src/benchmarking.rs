@@ -32,7 +32,7 @@ fn run_detection() -> Detection {
 #[ic_cdk::update]
 fn run_recognition() -> Recognition {
     let result = match onnx::recognize(IMAGE.to_vec()) {
-        Ok(result) => Recognition::Ok(result),
+        Ok(result) => Recognition::Ok(result.label),
         Err(err) => Recognition::Err(Error {
             message: err.to_string(),
         }),

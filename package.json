@@ -4,10 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "setup": "npm i && dfx canister create backend && dfx generate backend && dfx deploy",
-    "start": "run-p frontend backend backend_ai",
+    "setup": "npm i && dfx canister create internet_identity --specified-id rdmx6-jaaaa-aaaaa-aaadq-cai && dfx deploy",
+    "start": "run-p auth frontend backend backend_ai",
     "frontend": "vite --port 3000 --host",
     "backend": "mo-dev --generate --deploy -y",
+    "auth": "mo-dev --generate --deploy -y",
     "backend_ai": "cargo-watch -w 'src' -q -C ./backend_ai -s 'cd .. && dfx generate && dfx deploy backend_ai -q -y'",
     "build": "tsc && vite build",
     "test": "run-s test:backend test:frontend",
@@ -18,6 +19,7 @@
     "postinstall": "mops install"
   },
   "dependencies": {
+    "@dfinity/auth-client": "^2.3.0",
     "@ic-reactor/react": "^1.14.6",
     "@radix-ui/react-slot": "^1.1.2",
     "@tailwindcss/vite": "^4.0.7",

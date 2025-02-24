@@ -48,7 +48,7 @@ enum Addition {
 /// The result of the face recognition endpoint.
 #[derive(CandidType, Deserialize)]
 enum Recognition {
-    Ok(Person),
+    Ok(String),
     Err(Error),
 }
 
@@ -70,7 +70,7 @@ fn detect(image: Vec<u8>) -> Detection {
 #[ic_cdk::update]
 fn recognize(image: Vec<u8>) -> Recognition {
     let result = match onnx::recognize(image) {
-        Ok(result) => Recognition::Ok(result),
+        Ok(result) => Recognition::Ok(result.label),
         Err(err) => Recognition::Err(Error {
             message: err.to_string(),
         }),
@@ -81,8 +81,8 @@ fn recognize(image: Vec<u8>) -> Recognition {
 /// Adds a person with the given name (label) and face (image) for future
 /// face recognition requests.
 #[ic_cdk::update]
-fn add(label: String, image: Vec<u8>) -> Addition {
-    let result = match onnx::add(label, image) {
+fn add(principal: String, image: Vec<u8>) -> Addition {
+    let result = match onnx::add(principal, image) {
         Ok(result) => Addition::Ok(result),
         Err(err) => Addition::Err(Error {
             message: err.to_string(),
@@ -128,6 +128,12 @@ fn setup_models() -> Result<(), String> {
         storage::bytes(FACE_RECOGNITION_FILE),
     )
     .map_err(|err| format!("Failed to setup model: {}", err))
+}
+
+/// Used to check if the canister is alive or not
+#[ic_cdk::query]
+fn ping() -> String {
+    "Hello from backend_ai".to_owned()
 }
 
 #[ic_cdk::init]

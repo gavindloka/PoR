@@ -56,7 +56,7 @@ impl Embedding {
 
 #[derive(CandidType, Deserialize)]
 pub struct Person {
-    label: String,
+    pub label: String,
     score: f32,
 }
 

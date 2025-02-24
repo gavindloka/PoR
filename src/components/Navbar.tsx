@@ -45,7 +45,12 @@ export const Navbar = (props: Props) => {
             </Button>
           ) : (
             <Button
-              onClick={() => login()}
+              onClick={() => login({
+                identityProvider:
+                  process.env.DFX_NETWORK === "ic"
+                    ? "https://identity.ic0.app/#authorize"
+                    : "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943/#authorize"
+              })}
               variant="default"
               className=" bg-green-600 hover:bg-green-700 hover:text-white font-bold rounded-lg font-satoshi"
             >

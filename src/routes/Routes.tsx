@@ -5,6 +5,7 @@ import RegisterPage from '@/pages/RegisterPage';
 import HomePage from '@/pages/HomePage';
 import FormEditor from '@/pages/FormEditor';
 import AnswerForm from '@/pages/AnswerForm';
+import TestPage from '@/pages/TestPage';
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
       {
         path: '/',
         element: <HomePage />,
+      },
+      {
+        path: '/test',
+        element: <TestPage />,
       },
       {
         path: '*',
