@@ -6,12 +6,16 @@ import plugLogo from '../assets/plugLogo.png';
 import CountUp from '@/components/CountUp';
 import {
   Award,
+  BadgeCheck,
   Brain,
   ClipboardList,
+  Infinity,
   LineChart,
   Lock,
   Share2,
+  Wallet,
 } from 'lucide-react';
+import { delay } from 'motion';
 
 const HomePage = () => {
   const containerVariants = {
@@ -61,36 +65,37 @@ const HomePage = () => {
   const steps = [
     {
       icon: ClipboardList,
-      title: 'Design Survey',
-      description:
-        'Create your survey using our intuitive interface powered by DeAI',
+title: 'Design Survey',
+description: 
+  'DeAI intelligently categorizes your survey by topic for better organization and insights',
+
     },
     {
-      icon: Brain,
-      title: 'AI Processing',
+      icon: BadgeCheck,
+      title: 'Verified Responses',
       description:
-        'Our decentralized AI analyzes responses for deeper insights',
+        'DeAI ensures every user submits only one response, maintaining survey integrity',
     },
     {
       icon: Lock,
       title: 'Blockchain Security',
       description:
-        'All data is securely stored and verified on the ICP blockchain',
+        'All data is securely stored and verified on the blockchain',
     },
     {
-      icon: LineChart,
-      title: 'Data Analysis',
+      icon: Wallet,
+      title: 'Seamless Wallet Connection',
       description:
-        'Get comprehensive analytics and visualizations of your results',
+        'Easily connect your Plug Wallet and submit responses securely on-chain',
     },
     {
       icon: Share2,
-      title: 'Share Insights',
+      title: 'Spread the Word',
       description:
-        'Easily share and collaborate on research findings with peers',
+        'Instantly share your survey link and collect responses effortlessly',
     },
     {
-      icon: Award,
+      icon: Infinity,
       title: 'Earn Rewards',
       description: 'Get rewarded for contributing to decentralized research',
     },
@@ -266,7 +271,7 @@ const HomePage = () => {
           variants={itemVariants}
           initial="hidden"
           whileInView="visible"
-          transition={{ delay: 1 }}
+          transition={{ delay: 2 }}
           viewport={{ once: true }}
           // whileHover={{
           //   scale: 1.05,
@@ -327,7 +332,7 @@ const HomePage = () => {
             </motion.h3>
 
             <motion.p
-              className="text-gray-600"
+              className="text-gray-500 text-sm"
               initial={{ x: -20, opacity: 0 }}
               whileInView={{ x: 0, opacity: 1 }}
               transition={{
