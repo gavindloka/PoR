@@ -2,7 +2,6 @@ import { useAuth } from '@ic-reactor/react';
 import React from 'react';
 import { Link } from 'react-router';
 import { Button } from './ui/button';
-import { WalletButton } from './WalletButton';
 
 type Props = {};
 
@@ -16,6 +15,7 @@ export const Navbar = (props: Props) => {
     <>
       <div className="flex justify-between items-center bg-transparent py-3 px-10 font-satoshi mx-20 mt-3 rounded-xl border-gray-100 border shadow-lg">
         <div className="flex gap-4 items-center">
+          {identity?.getPrincipal && identity.getPrincipal().toString()}
           <Link
             to="/"
             className="font-bold text-xl hover:text-purple-700 duration-200"
@@ -45,9 +45,6 @@ export const Navbar = (props: Props) => {
         </div>
 
         <div className="flex gap-3">
-          <div>
-            <WalletButton />
-          </div>
           {authenticated ? (
             <Button
               onClick={() => logout()}
