@@ -2,7 +2,8 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import React from 'react';
 import icpLogo from '../assets/internet-computer-icp-logo.png';
-import plugLogo from '../assets/plugLogo.png'
+import plugLogo from '../assets/plugLogo.png';
+import CountUp from '@/components/CountUp';
 
 const HomePage = () => {
   const containerVariants = {
@@ -87,7 +88,7 @@ const HomePage = () => {
               Design a Survey
             </Button>
             <Button
-              className=" font-bold rounded-lg w-32 h-11 hover:border-purple-700 hover:scale-105 hover:border-2 transition-all"
+              className=" font-bold text-purple-600 hover:text-purple-600 rounded-lg w-32 h-11 border-purple-500 hover:border-purple-500 hover:scale-105 hover:border-2 transition-all"
               variant={'outline'}
             >
               Contribute
@@ -133,12 +134,21 @@ const HomePage = () => {
               <p className="font-light text-sm text-purple-800">
                 Total Surveys:
               </p>
-              <p className="font-bold text-5xl text-indigo-700">200+</p>
-              <p className="font-light text-xs text-purple-800">and counting</p>
+              <motion.p className="font-bold text-5xl text-purple-800">
+                <CountUp
+                  from={0}
+                  to={200}
+                  separator=","
+                  direction="up"
+                  duration={1}
+                  className="count-up-text"
+                />
+              </motion.p>
+              <p className="font-light text-sm text-purple-800">and counting...</p>
             </motion.div>
 
             <motion.div
-              className="w-40 h-60 rounded-xl flex flex-col gap-2 justify-center items-center bg-gradient-to-br from-purple-600 to-indigo-900 p-3"
+              className="w-40 h-60 rounded-xl flex flex-col gap-2 justify-center items-center bg-gradient-to-br from-purple-400 to-indigo-700 p-3"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 2.1 }}
