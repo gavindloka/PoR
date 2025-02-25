@@ -6,10 +6,10 @@ type Props = { children: ReactNode };
 
 export const MainLayout = (props: Props) => {
   return (
-    <div >
+    <div className='min-h-screen flex flex-col bg-white' >
       <Navbar/>
-        <main className='pt-20'>{props.children}</main>
-      <Footer />
+        <main className='flex-1 pt-20'>{props.children}</main>
+      <Footer/>
     </div>
   );
 };
