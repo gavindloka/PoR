@@ -43,7 +43,7 @@
       "candid": "backend_ai/backend.did",
       "package": "backend_ai",
       "type": "custom",
-      "wasm": "target/wasm32-wasi/release/backend_ai-ic.wasm",
+      "wasm": "target/wasm32-wasip1/release/backend_ai-ic.wasm",
       "build": [
         "bash build.sh"
       ]
