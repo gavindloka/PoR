@@ -1,7 +1,111 @@
+import { Facebook, Instagram, Linkedin, Twitter } from 'lucide-react';
 import React from 'react';
+import { Link } from 'react-router';
 
 type Props = {};
 
 export const Footer = (props: Props) => {
-  return <div className="">Footer</div>;
+  return (
+    <>
+    <footer className="bg-purple-100 border-t mt-20">
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground tracking-wider uppercase text-purple-700">Product</h3>
+            <ul className="mt-4 space-y-4">
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  Features
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  Pricing
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  Integrations
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  API
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground tracking-wider uppercase text-purple-700">Company</h3>
+            <ul className="mt-4 space-y-4">
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  Careers
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  Press
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground tracking-wider uppercase text-purple-700">Legal</h3>
+            <ul className="mt-4 space-y-4">
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  Terms
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-base text-muted-foreground hover:text-foreground transition-colors">
+                  Cookie Policy
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="mt-8 border-t border-border pt-8 md:flex md:items-center md:justify-between">
+          <div className="flex space-x-6 md:order-2">
+            <Link to="#" className="text-muted-foreground hover:text-purple-800 transition-colors">
+              <span className="sr-only">Facebook</span>
+              <Facebook className="h-6 w-6" />
+            </Link>
+            <Link to="#" className="text-muted-foreground hover:text-purple-800 transition-colors">
+              <span className="sr-only">Twitter</span>
+              <Twitter className="h-6 w-6" />
+            </Link>
+            <Link to="#" className="text-muted-foreground hover:text-purple-800 transition-colors">
+              <span className="sr-only">Instagram</span>
+              <Instagram className="h-6 w-6" />
+            </Link>
+            <Link to="#" className="text-muted-foreground hover:text-purple-800 transition-colors">
+              <span className="sr-only">LinkedIn</span>
+              <Linkedin className="h-6 w-6" />
+            </Link>
+          </div>
+          <p className="mt-8 text-base text-muted-foreground md:mt-0 md:order-1">
+            &copy; 2025 Proof of Research. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+    </>
+  );
 };
