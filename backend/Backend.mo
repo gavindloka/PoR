@@ -13,11 +13,11 @@ actor class Backend() {
     await Auth.getUser(caller);
   };
 
-  public func verify(caller : Principal, image : Blob) : async Response<()> {
+  public shared ({ caller }) func verify(image : Blob) : async Response<()> {
     await Auth.verify(caller, image);
   };
 
-  public func updateUser(caller : Principal, name : ?Text, age : ?Nat, gender : ?Text, country : ?Text, city : ?Text, occupation : ?Text) : async Response<()> {
+  public shared ({ caller }) func updateUser(name : ?Text, age : ?Nat, gender : ?Text, country : ?Text, city : ?Text, occupation : ?Text) : async Response<()> {
     await Auth.updateUser(caller, name, age, gender, country, city, occupation);
   };
 };

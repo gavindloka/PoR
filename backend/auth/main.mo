@@ -5,6 +5,7 @@ import TrieMap "mo:base/TrieMap";
 import Blob "mo:base/Blob";
 import Result "mo:base/Result";
 import Debug "mo:base/Debug";
+import Float "mo:base/Float";
 
 actor Auth {
   type Result<T, E> = Result.Result<T, E>;
@@ -23,13 +24,18 @@ actor Auth {
   let users = TrieMap.TrieMap<Principal, User>(Principal.equal, Principal.hash);
 
   type Addition = {
-    #ok;
-    #err : Error;
+    #Ok;
+    #Err : Error;
+  };
+
+  type Person = {
+    principal : Text;
+    score : Float;
   };
 
   type Recognition = {
-    #ok : Text;
-    #err : Error;
+    #Ok : Person;
+    #Err : Error;
   };
 
   type Error = {
@@ -89,12 +95,13 @@ actor Auth {
         let recognize = await ai.canister.recognize(image);
         switch (recognize) {
           // Not recognized = new person
-          case (#err(_)) {
+          case (#Err(error)) {
+            Debug.print("verify.recognize.err: " # error.message);
             // need to save the new person in backend_ai
             let addResult = await ai.canister.add(Principal.toText(caller), image);
             switch (addResult) {
-              case (#ok(_)) {};
-              case (#err(error)) {
+              case (#Ok(_)) {};
+              case (#Err(error)) {
                 Debug.print(error.message);
                 return #err("Internal server error");
               };
@@ -113,7 +120,8 @@ actor Auth {
             #ok();
           };
           // Recognized = duplicate person
-          case (#ok(_)) {
+          case (#Ok(ok)) {
+            Debug.print("verify.recognize.ok: " # ok.principal # Float.toText(ok.score));
             return #err("Face is already registered!");
           };
         };

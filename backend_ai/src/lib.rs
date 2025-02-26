@@ -4,10 +4,9 @@ use ic_stable_structures::{
     DefaultMemoryImpl,
 };
 
-use onnx::{setup, BoundingBox, Embedding, Person};
+use onnx::{setup, BoundingBox};
 use std::cell::RefCell;
 
-mod benchmarking;
 mod onnx;
 mod storage;
 
@@ -41,14 +40,22 @@ enum Detection {
 /// The result of the face addition endpoint.
 #[derive(CandidType, Deserialize)]
 enum Addition {
-    Ok(Embedding),
+    Ok,
     Err(Error),
+}
+
+/// The public type for Person
+/// Motoko doesn't accept Float32
+#[derive(CandidType, Deserialize)]
+struct PublicPerson {
+    principal: String,
+    score: f64,
 }
 
 /// The result of the face recognition endpoint.
 #[derive(CandidType, Deserialize)]
 enum Recognition {
-    Ok(String),
+    Ok(PublicPerson),
     Err(Error),
 }
 
@@ -64,13 +71,13 @@ fn detect(image: Vec<u8>) -> Detection {
     result
 }
 
-/// Performs face recognition and returns the name of the person whose recorded
+/// Performs face recognition and returns the principal whose recorded
 /// face is closest to the face in the given image. It also returns the distance
 /// between the face embeddings.
 #[ic_cdk::update]
 fn recognize(image: Vec<u8>) -> Recognition {
     let result = match onnx::recognize(image) {
-        Ok(result) => Recognition::Ok(result.label),
+        Ok(result) => Recognition::Ok(result.to_public_person()),
         Err(err) => Recognition::Err(Error {
             message: err.to_string(),
         }),
@@ -78,12 +85,12 @@ fn recognize(image: Vec<u8>) -> Recognition {
     result
 }
 
-/// Adds a person with the given name (label) and face (image) for future
+/// Adds a person with the given principal (as string) and face (image) for future
 /// face recognition requests.
 #[ic_cdk::update]
 fn add(principal: String, image: Vec<u8>) -> Addition {
     let result = match onnx::add(principal, image) {
-        Ok(result) => Addition::Ok(result),
+        Ok(_) => Addition::Ok,
         Err(err) => Addition::Err(Error {
             message: err.to_string(),
         }),

@@ -7,6 +7,8 @@ use std::cell::RefCell;
 use tract_ndarray::s;
 use tract_onnx::prelude::*;
 
+use crate::PublicPerson;
+
 // The maximum distance between face embeddings of the same person.
 const THRESHOLD: f32 = 0.85;
 
@@ -56,8 +58,17 @@ impl Embedding {
 
 #[derive(CandidType, Deserialize)]
 pub struct Person {
-    pub label: String,
+    label: String,
     score: f32,
+}
+
+impl Person {
+    pub fn to_public_person(&self) -> PublicPerson {
+        PublicPerson {
+            principal: self.label.clone(),
+            score: self.score as f64, // Convert f32 to f64
+        }
+    }
 }
 
 fn setup_facedetect(bytes: Bytes) -> TractResult<()> {
@@ -152,8 +163,6 @@ pub fn embedding(image: Vec<u8>) -> Result<Embedding, anyhow::Error> {
     })
 }
 
-/// Returns the person whose face embedding is the closest to the face embedding
-/// of the given image.
 pub fn recognize(image: Vec<u8>) -> Result<Person, anyhow::Error> {
     let emb = embedding(image)?;
     DB.with_borrow(|db| {
