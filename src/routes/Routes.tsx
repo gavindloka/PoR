@@ -6,6 +6,8 @@ import HomePage from '@/pages/HomePage';
 import FormEditor from '@/pages/FormEditor';
 import AnswerForm from '@/pages/AnswerForm';
 import TestPage from '@/pages/TestPage';
+import GetVerifiedPage from '@/pages/GetVerifiedPage';
+import ProfilePage from '@/pages/ProfilePage';
 
 export const router = createBrowserRouter([
   {
@@ -35,6 +37,14 @@ export const router = createBrowserRouter([
       {
         path: '/test',
         element: <TestPage />,
+      },
+      {
+        path: '/verified',
+        element: <GetVerifiedPage />,
+      },
+      {
+        path: '/profile',
+        element: <ProfilePage />,
       },
       {
         path: '*',
