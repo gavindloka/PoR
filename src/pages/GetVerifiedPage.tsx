@@ -9,28 +9,41 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useAuth, useQueryCall, useUpdateCall } from '@ic-reactor/react';
+import { toast } from 'sonner';
 
 export default function GetVerifiedPage() {
+  const { identity } = useAuth();
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [blob, setBlob] = useState<Uint8Array>();
+  const { loading, data: user, refetch } = useQueryCall({
+    functionName: 'getUser'
+})
+const startCamera = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'user',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+      audio: false,
+    });
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
-        audio: false,
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setIsCameraActive(true);
-      }
-    } catch (err) {
-      console.error('Error accessing camera:', err);
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      setIsCameraActive(true);
+    } else {
+      console.error('No video element found');
     }
-  };
+  } catch (err) {
+    console.error('Error accessing camera:', err);
+  }
+};
+
 
   const stopCamera = () => {
     if (videoRef.current && videoRef.current.srcObject) {
@@ -41,35 +54,134 @@ export default function GetVerifiedPage() {
     }
   };
 
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      if (context) {
-        canvasRef.current.width = videoRef.current.videoWidth;
-        canvasRef.current.height = videoRef.current.videoHeight;
-        context.drawImage(
-          videoRef.current,
-          0,
-          0,
-          canvasRef.current.width,
-          canvasRef.current.height,
-        );
+  useEffect(() => {
+    console.log("Blob Updated:", blob);
+  }, [blob]);
 
-        const imageData = canvasRef.current.toDataURL('image/png');
-        setCapturedImage(imageData);
-        stopCamera();
-      }
+  async function captureImage(): Promise<void> {
+    const video = videoRef.current;
+    if (!video) {
+      console.error('No video element found');
+      return;
     }
-  };
+  
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      console.error('No canvas element found');
+      return;
+    }
+  
+    const context = canvas.getContext('2d');
+    if (!context) {
+      console.error('No canvas context found');
+      return;
+    }
+  
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+  
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+  
+    const imageData = canvas.toDataURL('image/png');
+    console.log("Captured Image:", imageData);
+    setCapturedImage(imageData); 
+  
+    const serialize = async (canvas: HTMLCanvasElement): Promise<ArrayBuffer | undefined> => {
+      return new Promise((resolve) => {
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              blob.arrayBuffer().then(resolve);
+            } else {
+              resolve(undefined);
+            }
+          },
+          'image/png',
+          0.9
+        );
+      });
+    };
+  
+    const bytes = await serialize(canvas);
+    if (!bytes) {
+      console.error("Failed to serialize image");
+      return;
+    }
+  
+    setBlob(new Uint8Array(bytes));
+  
+    stopCamera();
+  }
+  
+
 
   const retakePhoto = () => {
     setCapturedImage(null);
     startCamera();
   };
 
-  const submitVerification = () => {
-    alert('Verification submitted successfully!');
+  const handleSubmit = async () => {
+    if (!blob) {
+      console.error("No image captured for submission.");
+      return;
+    }
+  
+    if (!identity) {
+      console.error("No identity found.");
+      return;
+    }
+  
+    console.log("Submitting stored image...");
+  
+    call();
   };
+  
+
+  const { call, data } = useUpdateCall({
+    functionName: "verify",
+    args: [blob],
+    onLoading: (loading) => {
+      console.log("Loading:", loading)
+      if (loading) {
+        toast.loading("Submitting verification...", {
+          id: "verification-submission",
+        })
+      }
+    },
+    onError: (error) => {
+      console.error("Error:", error)
+      toast.error("Verification failed", {
+        id: "verification-submission",
+        description: "There was an error processing your verification. Please try again.",
+        action: {
+          label: "Try Again",
+          onClick: () => handleSubmit(),
+        },
+      })
+    },
+    onSuccess: (data) => {
+      console.log("Success:", data);
+    
+      const response = data as { err?: string };
+    
+      if (response.err) {
+        toast.error("Verification failed", {
+          id: "verification-error",
+          description: response.err, 
+        });
+      } else {
+        toast.success("Verification successful", {
+          id: "verification-submission",
+          description: "Your identity has been verified successfully.",
+        });
+      }
+    },
+    
+    
+  })
+
+  
 
   useEffect(() => {
     return () => {
@@ -127,10 +239,10 @@ export default function GetVerifiedPage() {
 
           <div className="flex-1 p-6 flex flex-col">
             <div className="space-y-4 mb-6 flex-grow">
-                <h3 className="font-medium text-purple-800 text-xl flex items-center">
-                  <CheckCircle className="mr-2 h-5 w-5" />
-                  Verification Guidelines
-                </h3>
+              <h3 className="font-medium text-purple-800 text-xl flex items-center">
+                <CheckCircle className="mr-2 h-5 w-5" />
+                Verification Guidelines
+              </h3>
               <ul className="text-gray-600 space-y-3 ml-3">
                 {[
                   'Ensure your face is clearly visible',
@@ -147,7 +259,7 @@ export default function GetVerifiedPage() {
 
               <div className="mt-6 pt-4 border-t border-purple-100">
                 <h4 className="font-medium text-purple-800 text-xl flex items-center mb-2">
-                <Shield className="mr-2 h-5 w-5" />
+                  <Shield className="mr-2 h-5 w-5" />
                   Why we need verification?
                 </h4>
                 <p className="text-gray-600">
@@ -169,7 +281,7 @@ export default function GetVerifiedPage() {
                 </Button>
               ) : !capturedImage ? (
                 <Button
-                  onClick={capturePhoto}
+                  onClick={captureImage}
                   className="w-full bg-purple-700 hover:bg-purple-800"
                 >
                   Take Photo
@@ -185,7 +297,7 @@ export default function GetVerifiedPage() {
                     Retake
                   </Button>
                   <Button
-                    onClick={submitVerification}
+                    onClick={handleSubmit}
                     className="flex-1 bg-purple-600 hover:bg-purple-700"
                   >
                     <CheckCircle className="mr-2 h-4 w-4" />
@@ -197,6 +309,15 @@ export default function GetVerifiedPage() {
               <p className="text-xs text-center text-purple-700 mt-3">
                 Your photo will only be used for verification purposes
               </p>
+              {/* <p className="text-center text-red-500 mt-3">{(data as { err?: string })?.err || ""}
+              </p> */}
+              <div>
+                {/* <p>{JSON.stringify(user)}</p> */}
+                {/* {!(identity?.getPrincipal().isAnonymous() === false) && (
+                  <p>LOGIN FIRST</p>
+                )} */}
+
+              </div>
             </div>
           </div>
         </div>

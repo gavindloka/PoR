@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Navbar } from '../Navbar';
 import { Footer } from '../Footer';
+import { Toaster } from 'sonner';
 
 type Props = { children: ReactNode };
 
@@ -10,6 +11,7 @@ export const MainLayout = (props: Props) => {
       <Navbar/>
         <main className='flex-1 pt-20'>{props.children}</main>
       <Footer/>
+      <Toaster/>
     </div>
   );
 };
