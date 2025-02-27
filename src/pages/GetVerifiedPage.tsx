@@ -127,10 +127,11 @@ export default function GetVerifiedPage() {
 
           <div className="flex-1 p-6 flex flex-col">
             <div className="space-y-4 mb-6 flex-grow">
-              <h3 className="font-medium text-purple-800 text-lg">
-                Verification Guidelines:
-              </h3>
-              <ul className="text-gray-600 space-y-3">
+                <h3 className="font-medium text-purple-800 text-xl flex items-center">
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                  Verification Guidelines
+                </h3>
+              <ul className="text-gray-600 space-y-3 ml-3">
                 {[
                   'Ensure your face is clearly visible',
                   'Remove sunglasses or any face coverings',
@@ -145,8 +146,9 @@ export default function GetVerifiedPage() {
               </ul>
 
               <div className="mt-6 pt-4 border-t border-purple-100">
-                <h4 className="font-medium text-purple-800 mb-2">
-                  Why we need verification:
+                <h4 className="font-medium text-purple-800 text-xl flex items-center mb-2">
+                <Shield className="mr-2 h-5 w-5" />
+                  Why we need verification?
                 </h4>
                 <p className="text-gray-600">
                   Verification helps us maintain a secure platform and protect
