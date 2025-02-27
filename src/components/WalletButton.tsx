@@ -25,15 +25,7 @@ export const WalletButton = () => {
   };
 
   useEffect(() => {
-    const restoreConnection = async () => {
-      // @ts-ignore
-      const connected = await window.ic?.plug?.isConnected();
-      if (connected) {
-        await checkPlugConnection(); // Restore the user's principal
-      }
-    };
-
-    restoreConnection();
+    checkPlugConnection();
   }, []);
 
   const connectPlug = async () => {
@@ -49,12 +41,11 @@ export const WalletButton = () => {
   const disconnectPlug = async () => {
     try {
       // @ts-ignore
-      await window.ic.plug.onExternalDisconnect();
-
-      // Manually clear the state immediately
-      setPublicAddress(null);
+      await window.ic.plug.requestDisconnect();
     } catch (error) {
       console.error('Failed to disconnect:', error);
+    } finally {
+      window.location.reload(); // Ensure page refresh happens no matter what
     }
   };
 
@@ -62,7 +53,7 @@ export const WalletButton = () => {
     <>
       {publicAddress ? (
         <Button
-          className="h-9 rounded-lg bg-purple-700 hover:bg-purple-800 pr-7 pl-5 transition-all duration-500 flex gap-3  items-center"
+          className="h-9 rounded-lg bg-purple-700 hover:bg-purple-800 pr-7 pl-5 transition-all duration-500 flex gap-3 hover:gap-5 hover:pl-3 items-center"
           onClick={disconnectPlug}
         >
           <LuPlug />
