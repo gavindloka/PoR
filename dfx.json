@@ -25,8 +25,15 @@
         "node_compatibility": true
       }
     },
+    "icp_ledger_canister_backend": {
+      "type": "motoko",
+      "main": "icp_ledger_canister/src/icp_ledger_canister_backend/main.mo",
+      "declarations": {
+        "node_compatibility": true
+      }
+    },
     "frontend": {
-      "dependencies": ["backend"],
+      "dependencies": ["backend", "icp_ledger_canister_backend"],
       "type": "assets",
       "source": ["dist/"]
     },
@@ -51,13 +58,6 @@
         "id": {
           "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"
         }
-      }
-    },
-    "icp_ledger_canister_backend": {
-      "type": "motoko",
-      "main": "icp_ledger_canister/src/icp_ledger_canister_backend/main.mo",
-      "declarations": {
-        "node_compatibility": true
       }
     }
   },
