@@ -25,6 +25,16 @@
         "node_compatibility": true
       }
     },
+    "icp_ledger_canister": {
+      "type": "custom",
+      "candid": "https://raw.githubusercontent.com/dfinity/ic/2f02a660f6f17b5a78c13d9b372f74c8228f79b8/rs/ledger_suite/icp/ledger.did",
+      "wasm": "https://download.dfinity.systems/ic/2f02a660f6f17b5a78c13d9b372f74c8228f79b8/canisters/ledger-canister.wasm.gz",
+      "remote": {
+        "id": {
+          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"
+        }
+      }
+    },
     "icp_ledger_canister_backend": {
       "type": "motoko",
       "main": "icp_ledger_canister/src/icp_ledger_canister_backend/main.mo",
@@ -33,7 +43,11 @@
       }
     },
     "frontend": {
-      "dependencies": ["backend", "icp_ledger_canister_backend"],
+      "dependencies": [
+        "backend",
+        "icp_ledger_canister_backend",
+        "icp_ledger_canister"
+      ],
       "type": "assets",
       "source": ["dist/"]
     },
@@ -49,16 +63,6 @@
       "wasm": "target/wasm32-wasip1/release/backend_ai-ic.wasm",
 
       "build": ["bash build.sh"]
-    },
-    "icp_ledger_canister": {
-      "type": "custom",
-      "candid": "https://raw.githubusercontent.com/dfinity/ic/2f02a660f6f17b5a78c13d9b372f74c8228f79b8/rs/ledger_suite/icp/ledger.did",
-      "wasm": "https://download.dfinity.systems/ic/2f02a660f6f17b5a78c13d9b372f74c8228f79b8/canisters/ledger-canister.wasm.gz",
-      "remote": {
-        "id": {
-          "ic": "ryjl3-tyaaa-aaaaa-aaaba-cai"
-        }
-      }
     }
   },
   "defaults": {

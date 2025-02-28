@@ -11,7 +11,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <AgentProvider withProcessEnv>
       <ActorProvider idlFactory={idlFactory} canisterId={canisterId}>
-        <RouterProvider router={router}/>
+        <RouterProvider router={router} />
       </ActorProvider>
     </AgentProvider>
   </React.StrictMode>,

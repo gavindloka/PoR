@@ -6,7 +6,7 @@ import { MainLayout } from './components/layouts/MainLayout';
 function App() {
   return (
     <div className="">
-      <AgentProvider>
+      <AgentProvider withProcessEnv>
         <MainLayout>
           <Outlet />
         </MainLayout>
