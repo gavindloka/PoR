@@ -1,54 +1,151 @@
-# Vite + React + Motoko
+# Project Setup Guide
 
-### Get started directly in your browser:
+This document provides detailed instructions on setting up, running, and troubleshooting the project.
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/rvanasa/vite-react-motoko)
+## Prerequisites
 
-This template gives you everything you need to build a full-stack Web3 application on the [Internet Computer](https://internetcomputer.org/).
+Before running this project, ensure you have installed the following dependencies:
 
-For an example of a real-world dapp built using this starter project, check out the [source code](https://github.com/dfinity/feedback) for DFINITY's [Developer Experience Feedback Board](https://dx.internetcomputer.org/).
+### Install Rust and Required Tools
 
-## 📦 Create a New Project
+1. **Install Rust (if not already installed):**
+   ```sh
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+2. **Add WASM and WASI Targets:**
+   ```sh
+   rustup target add wasm32-wasip1
+   ```
+3. **Install Required Rust Tools:**
+   ```sh
+   cargo install wasm-opt
+   cargo install wasi2ic
+   cargo install ic-file-uploader
+   cargo install cargo-watch
+   ```
 
-Make sure that [Node.js](https://nodejs.org/en/) `>= 16` and [`dfx`](https://internetcomputer.org/docs/current/developer-docs/build/install-upgrade-remove) `>= 0.14` are installed on your system.
+### Install Python and Required Libraries
 
-Run the following commands in a new, empty project directory:
+1. **Install Python and pip (if not already installed):**
+   ```sh
+   sudo apt-get install python3-pip
+   ```
+2. **Install Required Python Packages:**
+   ```sh
+   pip install facenet-pytorch torch onnx
+   ```
+
+---
+
+## TL;DR - Quick Start Commands
+To quickly run the project, execute the following commands in order (assuming all requirements are installed and everything has been set up in order):
 
 ```sh
-npx degit rvanasa/vite-react-motoko # Download this starter project
-dfx start --clean --background # Run dfx in the background
-npm run setup # Install packages, deploy canisters, and generate type bindings
-
-npm start # Start the development server
+dfx stop
+dfx start --clean --background
+./deploy-ledger.sh
+npm run setup
+npm start
+dfx canister call auth initialize $(dfx canister id backend_ai)
+./upload-models-to-canister.sh
 ```
 
-When ready, run `dfx deploy --network ic` to deploy your application to the Internet Computer.
+## Running the Project
 
-## 🛠️ Technology Stack
+### Step 1: Start the DFX (Internet Computer) Local Network
 
-- [Vite](https://vitejs.dev/): high-performance tooling for front-end web development
-- [React](https://reactjs.org/): a component-based UI library
-- [TypeScript](https://www.typescriptlang.org/): JavaScript extended with syntax for types
-- [Sass](https://sass-lang.com/): an extended syntax for CSS stylesheets
-- [Prettier](https://prettier.io/): code formatting for a wide range of supported languages
-- [Motoko](https://github.com/dfinity/motoko#readme): a safe and simple programming language for the Internet Computer
-- [Mops](https://mops.one): an on-chain community package manager for Motoko
-- [mo-dev](https://github.com/dfinity/motoko-dev-server#readme): a live reload development server for Motoko
-- [@ic-reactor](https://github.com/B3Pay/ic-reactor): A suite of JavaScript libraries for seamless frontend development on the Internet Computer
+Before running the project, start the DFINITY Canister execution environment:
+```sh
+ dfx stop  # Stop any existing instance
+ dfx start --clean --background  # Start fresh in the background
+```
 
-## 📚 Documentation
+### Step 2: Deploy Ledger Canister
+```sh
+ ./deploy-ledger.sh
+```
 
-- [Vite developer docs](https://vitejs.dev/guide/)
-- [React quick start guide](https://react.dev/learn)
-- [Internet Computer docs](https://internetcomputer.org/docs/current/developer-docs/ic-overview)
-- [`dfx.json` reference schema](https://internetcomputer.org/docs/current/references/dfx-json-reference/)
-- [Motoko developer docs](https://internetcomputer.org/docs/current/developer-docs/build/cdks/motoko-dfinity/motoko/)
-- [Mops usage instructions](https://j4mwm-bqaaa-aaaam-qajbq-cai.ic0.app/#/docs/install)
-- [@ic-reactor/react](https://b3pay.github.io/ic-reactor/modules/react.html)
+### Step 3: Run Setup and Start Application
+```sh
+ npm run setup  # Set up dependencies
+ npm start  # Start the application
+```
 
-## 💡 Tips and Tricks
+## Face Detection Model
 
-- Customize your project's code style by editing the `.prettierrc` file and then running `npm run format`.
-- Reduce the latency of update calls by passing the `--emulator` flag to `dfx start`.
-- Install a Motoko package by running `npx ic-mops add <package-name>`. Here is a [list of available packages](https://mops.one/).
-- Split your frontend and backend console output by running `npm run frontend` and `npm run backend` in separate terminals.
+### Step 1: Download Face Detection Model
+Run the following command to download the necessary model files:
+```sh
+ ./download-face-detection-model.sh
+```
+
+### Step 2: Create Face Recognition Model (If Not Available)
+
+Face recognition models compute a vector embedding of an image with a face. You can generate a pre-trained model from `facenet-pytorch` using the following steps:
+
+#### Install Dependencies (If Not Installed)
+```sh
+pip install facenet-pytorch torch onnx
+```
+
+#### Export ONNX Model
+Create a Python script or run these commands in a Python shell:
+```python
+import torch
+import facenet_pytorch
+
+# Load the pretrained model
+resnet = facenet_pytorch.InceptionResnetV1(pretrained='vggface2').eval()
+
+# Create a dummy input tensor
+input = torch.randn(1, 3, 160, 160)
+
+# Export model to ONNX format
+torch.onnx.export(resnet, input, "face-recognition.onnx", verbose=False, opset_version=11)
+```
+This will generate a `face-recognition.onnx` file. Copy it to the root of the repository.
+
+## Initializing AI Models
+
+After setting up the project and models, initialize the AI system with the following commands:
+
+```sh
+ dfx canister call auth initialize $(dfx canister id backend_ai)
+ ./upload-models-to-canister.sh
+```
+
+## Troubleshooting and Possible Issues
+
+### 1. Line Ending Issues (WSL Users)
+If you're running this on WSL (Windows Subsystem for Linux) but your files are saved in Windows, you may run into issues with script execution due to line endings. Convert files to Linux format:
+```sh
+sed -i 's/
+$//' *.sh
+```
+Alternatively, use `dos2unix`:
+```sh
+dos2unix *.sh
+```
+
+### 2. DFX Start Errors
+If `dfx start` fails, try stopping any existing processes and clearing the cache:
+```sh
+dfx stop
+dfx cache delete
+```
+Then restart the environment.
+
+### 3. Missing Dependencies
+If commands fail due to missing dependencies, ensure you have installed all prerequisites mentioned earlier. You may also try:
+```sh
+rustup update
+pip install --upgrade pip
+npm install
+```
+
+### 4. AI Model Initialization Issues
+If `dfx canister call auth initialize` fails, ensure the canister is deployed and running:
+```sh
+dfx deploy
+```
+Then retry the initialization command.
