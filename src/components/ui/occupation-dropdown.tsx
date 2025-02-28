@@ -6,6 +6,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { ChevronDown, CheckIcon } from "lucide-react"
+import { Country } from "./country-dropdown"
 
 const occupations = [
     { id: "software-engineer", name: "Software Engineer" },
@@ -146,7 +147,6 @@ const OccupationDropdownComponent = (
     "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
     slim === true && "w-20",
   )
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger ref={ref} className={triggerClasses} disabled={disabled} {...props}>

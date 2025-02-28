@@ -22,7 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router';
 import { Country, CountryDropdown } from '@/components/ui/country-dropdown';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Select } from '@radix-ui/react-select';
 import {
   SelectContent,
@@ -31,57 +31,89 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { OccupationDropdown } from '@/components/ui/occupation-dropdown';
+import { useAuth, useQueryCall, useUpdateCall } from '@ic-reactor/react';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
+import { Mars as Male, Venus as Female } from "lucide-react"
 
-
-  
-
-const formSchema = z
-  .object({
-    name: z
-      .string()
-      .min(2, { message: 'Name must be at least 2 characters long' }),
-    email: z.string().email({ message: 'Invalid email address' }),
-    phone: z.string().min(10, { message: 'Phone number must be valid' }),
-    password: z
-      .string()
-      .min(6, { message: 'Password must be at least 6 characters long' })
-      .regex(/[a-zA-Z0-9]/, { message: 'Password must be alphanumeric' }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Passwords do not match',
-  });
+const formSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: 'Name must be at least 2 characters long' }),
+  age: z
+    .string()
+    .min(1, { message: 'Age is required' })
+    .refine((val) => !isNaN(Number.parseInt(val)), {
+      message: 'Age must be a number',
+    }),
+  gender: z.string().min(1, { message: 'Gender is required' }),
+  city: z.string().min(2, { message: 'City must be at least 2 characters' }),
+  country: z.string().min(1, { message: 'Country is required' }),
+  occupation: z.string().min(1, { message: 'Occupation is required' }),
+});
 
 const ProfilePage = () => {
+  const [selectedCountry, setSelectedCountry] = useState<string>('');
+  const { call, data, loading } = useUpdateCall({
+    functionName: 'updateUser',
+    args: [],
+    onLoading: (loading) => console.log('Loading:', loading),
+    onError: (error) => console.error('Error:', error),
+    onSuccess: (data) => console.log('Success:', data),
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      email: '',
-      phone: '',
-      password: '',
-      confirmPassword: '',
+      age: '',
+      gender: '',
+      city: '',
+      country: '',
+      occupation: '',
     },
   });
+
+  const { data: user, refetch } = useQueryCall({
+    functionName: 'getUser',
+  });
+
+  useEffect(() => {
+    if (user) {
+      console.log(user);
+    }
+  }, [user]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>,
-      );
+      const { name, age, gender, city, country, occupation } = values;
+
+      const updateUserArgs = [
+        name ? [name] : [],
+        age ? [Number.parseInt(age)] : [17],
+        gender ? [gender] : ['male'],
+        country ? [country] : [],
+        city ? [city] : [],
+        occupation ? [occupation] : [],
+      ];
+
+      const result = await call(updateUserArgs);
+      console.log("result"+JSON.stringify(result));
+      if(result){
+        toast.success('Profile updated successfully');
+      }else{
+        toast.error('Failed to submit the form. Please try again.');
+      }
     } catch (error) {
       console.error('Form submission error', error);
       toast.error('Failed to submit the form. Please try again.');
     }
   }
 
-  const [selectedCountry, setSelectedCountry] = useState<string>('');
   const handleCountryChange = (country: Country) => {
-    console.log('Selected Country: ', country);
+    console.log('Selected Country: ', country.name);
     setSelectedCountry(country.alpha3);
+    form.setValue('country', country.name);
   };
 
   return (
@@ -90,18 +122,18 @@ const ProfilePage = () => {
         <Card className="mx-auto min-w-full shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl">Profile</CardTitle>
-            <CardDescription>
-              Your Personal Information
-            </CardDescription>
+            <CardDescription>Your Personal Information</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-8"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  onSubmit(form.getValues());
+                }}
               >
                 <div className="grid gap-4">
-                  {/* Name Field */}
                   <FormField
                     control={form.control}
                     name="name"
@@ -116,19 +148,17 @@ const ProfilePage = () => {
                     )}
                   />
 
-                  {/* Email Field */}
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="age"
                     render={({ field }) => (
                       <FormItem className="grid gap-2">
-                        <FormLabel htmlFor="email">Email</FormLabel>
+                        <FormLabel htmlFor="age">Age</FormLabel>
                         <FormControl>
                           <Input
-                            id="email"
-                            placeholder="johndoe@mail.com"
-                            type="email"
-                            autoComplete="email"
+                            id="age"
+                            placeholder="25"
+                            type="number"
                             {...field}
                           />
                         </FormControl>
@@ -136,18 +166,49 @@ const ProfilePage = () => {
                       </FormItem>
                     )}
                   />
+
+<FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-2">
+                        <FormLabel>Gender</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="grid grid-cols-2 gap-4 pt-2"
+                          >
+                            <Label
+                              htmlFor="male"
+                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-purple-700"
+                            >
+                              <RadioGroupItem value="male" id="male" className="sr-only" />
+                              <Male className="mb-3 h-6 w-6" />
+                              <span className="text-sm font-medium leading-none">Male</span>
+                            </Label>
+                            <Label
+                              htmlFor="female"
+                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-purple-700"
+                            >
+                              <RadioGroupItem value="female" id="female" className="sr-only" />
+                              <Female className="mb-3 h-6 w-6" />
+                              <span className="text-sm font-medium leading-none">Female</span>
+                            </Label>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="city"
                     render={({ field }) => (
                       <FormItem className="grid gap-2">
                         <FormLabel htmlFor="city">City</FormLabel>
                         <FormControl>
-                          <Input
-                            id="city"
-                            placeholder="Washington"
-                            {...field}
-                          />
+                          <Input id="city" placeholder="Jakarta" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -155,7 +216,7 @@ const ProfilePage = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="country"
                     render={({ field }) => (
                       <FormItem className="grid gap-2">
                         <FormLabel htmlFor="country">Country</FormLabel>
@@ -173,21 +234,32 @@ const ProfilePage = () => {
 
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="occupation"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Occupation</FormLabel>
                         <FormControl>
-                          <OccupationDropdown />
+                          <OccupationDropdown
+                            onChange={(occupation) =>
+                              form.setValue('occupation', occupation.name)
+                            }
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <Button type="submit" className="w-full bg-purple-700 hover:bg-purple-800 font-bold">
-                    Submit
+                  <Button
+                    type="submit"
+                    className="w-full bg-purple-700 hover:bg-purple-800 font-bold"
+                    disabled={loading}
+                  >
+                    {loading ? 'Updating...' : 'Submit'}
                   </Button>
+                  {/* {error && (
+                    <div className="text-red-500">{JSON.stringify(error)}</div>
+                  )} */}
                 </div>
               </form>
             </Form>

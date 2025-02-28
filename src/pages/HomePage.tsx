@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import React, { useRef } from 'react';
 import icpLogo from '../assets/internet-computer-icp-logo.png';
-import plugLogo from '../assets/plugLogo.png';
+import nnsLogo from '../assets/nnsLogo.png';
 import workPic from '../assets/section3.jpg';
 import CountUp from '@/components/CountUp';
 import {
@@ -226,11 +226,11 @@ const HomePage = () => {
               transition={{ duration: 0.5, delay: 1.4 }}
             >
               <div>
-                <img src={plugLogo} alt="" className="w-14 h-14" />
+                <img src={nnsLogo} alt="" className="w-14 h-14" />
               </div>
               <p className="font-bold text-xl text-white">On-Chain Wallet</p>
               <p className="text-purple-100 font-light text-sm">
-                using Plug Wallet
+                using NNS Wallet with ICP Ledger
               </p>
             </motion.div>
 
