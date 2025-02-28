@@ -75,9 +75,15 @@ export const Navbar = (props: Props) => {
             >
               Create
             </Link>
+            <Link
+              to="/verified"
+              className="hover:text-purple-700 duration-200 font-normal"
+            >
+              Get Verified
+            </Link>
           </div>
         </div>
-        <div>
+        {/* <div>
           <CandidAdapterProvider>
             <ActorProvider
               canisterId={'ryjl3-tyaaa-aaaaa-aaaba-cai'}
@@ -87,7 +93,7 @@ export const Navbar = (props: Props) => {
               <Balance />
             </ActorProvider>
           </CandidAdapterProvider>
-        </div>
+        </div> */}
         <div className="flex gap-3">
           <div>
             <WalletButton />
