@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Question } from './form-builder';
+import type { Question } from './FormBuilder';
 import { ChevronDown } from 'lucide-react';
 
 interface FormPreviewProps {
@@ -152,8 +152,8 @@ export default function FormPreview({
                         const newValues = checked
                           ? [...currentValues, option.id]
                           : currentValues.filter(
-                              (id: string) => id !== option.id,
-                            );
+                            (id: string) => id !== option.id,
+                          );
                         handleInputChange(question.id, newValues);
                       }}
                       className="w-5 h-5 border border-gray-300 rounded-md bg-white data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 flex items-center justify-center"

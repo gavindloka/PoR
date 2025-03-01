@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
-import QuestionField from './question-field';
-import FormPreview from './form-preview';
+import QuestionField from './QuestionField';
+import FormPreview from './FormPreview';
 
 export type QuestionType =
   | 'short-answer'
