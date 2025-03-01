@@ -9,6 +9,7 @@ import TestPage from '@/pages/TestPage';
 import GetVerifiedPage from '@/pages/GetVerifiedPage';
 import ProfilePage from '@/pages/ProfilePage';
 import { AddSurvey } from '@/pages/AddSurvey';
+import FormManagement from '@/pages/MyForm';
 
 export const router = createBrowserRouter([
   {
@@ -24,8 +25,12 @@ export const router = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
-        path: '/FormEditor',
+        path: '/forms/new',
         element: <AddSurvey />,
+      },
+      {
+        path: '/forms',
+        element: <FormManagement />,
       },
       {
         path: '/AnswerForm',
