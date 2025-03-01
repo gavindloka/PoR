@@ -21,6 +21,8 @@ import { MaskText } from '@/components/MaskText';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { AvatarFallback, AvatarImage, Avatar } from '@/components/ui/avatar';
+import { a } from 'framer-motion/dist/types.d-6pKw1mTI';
+import { useNavigate } from 'react-router';
 
 const HomePage = () => {
   const containerVariants = {
@@ -108,6 +110,7 @@ const HomePage = () => {
       avatar: '/placeholder.svg?height=40&width=40',
     },
   ];
+  const navigate = useNavigate();
   const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -203,11 +206,15 @@ const HomePage = () => {
             secured on the blockchain
           </motion.p>
           <motion.div className="mt-8 flex gap-5" variants={itemVariants}>
-            <Button className=" font-bold rounded-lg bg-purple-700 w-32 h-11 hover:border-0 hover:bg-purple-800 hover:scale-105 transition-all">
+            <Button
+              className=" font-bold rounded-lg bg-purple-700 w-32 h-11 hover:border-0 hover:bg-purple-800 hover:scale-105 transition-all"
+              onClick={() => navigate('/forms/new')}
+            >
               Design a Survey
             </Button>
             <Button
               className=" font-bold text-purple-600 hover:text-purple-600 rounded-lg w-32 h-11 border-purple-500 hover:border-purple-500 hover:scale-105 hover:border-2 transition-all"
+              onClick={() => navigate('/browse')}
               variant={'outline'}
             >
               Contribute

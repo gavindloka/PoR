@@ -70,7 +70,7 @@ export const Navbar = (props: Props) => {
               Browse
             </Link>
             <Link
-              to="/forms/new"
+              to="/forms"
               className="hover:text-purple-700 duration-200 font-normal"
             >
               Create
