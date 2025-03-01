@@ -23,18 +23,12 @@ import { Input } from '@/components/ui/input';
 import { Link } from 'react-router';
 import { Country, CountryDropdown } from '@/components/ui/country-dropdown';
 import { useEffect, useState } from 'react';
-import { Select } from '@radix-ui/react-select';
-import {
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { OccupationDropdown } from '@/components/ui/occupation-dropdown';
 import { useAuth, useQueryCall, useUpdateCall } from '@ic-reactor/react';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
-import { Mars as Male, Venus as Female } from "lucide-react"
+import { Mars as Male, Venus as Female } from 'lucide-react';
+import { Backend, Response_1 } from '@/declarations/backend/backend.did';
 
 const formSchema = z.object({
   name: z
@@ -54,7 +48,11 @@ const formSchema = z.object({
 
 const ProfilePage = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>('');
-  const { call, data, loading } = useUpdateCall({
+  const {
+    call,
+    data,
+    loading: loadingUpdate,
+  } = useUpdateCall({
     functionName: 'updateUser',
     args: [],
     onLoading: (loading) => console.log('Loading:', loading),
@@ -74,15 +72,41 @@ const ProfilePage = () => {
     },
   });
 
-  const { data: user, refetch } = useQueryCall({
+  const {
+    loading: loadingUser,
+    data: rawUser,
+    refetch,
+  } = useQueryCall<Backend>({
     functionName: 'getUser',
   });
 
+  const user = rawUser as Response_1 | undefined;
+
   useEffect(() => {
-    if (user) {
-      console.log(user);
+    if (user && 'ok' in user) {
+      console.log(user.ok);
+      form.reset({
+        name: Array.isArray(user.ok.name)
+          ? user.ok.name[0]
+          : user.ok.name || '',
+        age: Array.isArray(user.ok.age)
+          ? String(user.ok.age[0])
+          : String(user.ok.age || ''),
+        gender: Array.isArray(user.ok.gender)
+          ? user.ok.gender[0]
+          : user.ok.gender || '',
+        city: Array.isArray(user.ok.city)
+          ? user.ok.city[0]
+          : user.ok.city || '',
+        country: Array.isArray(user.ok.country)
+          ? user.ok.country[0]
+          : user.ok.country || '',
+        occupation: Array.isArray(user.ok.occupation)
+          ? user.ok.occupation[0]
+          : user.ok.occupation || '',
+      });
     }
-  }, [user]);
+  }, [user, form.reset]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -98,10 +122,10 @@ const ProfilePage = () => {
       ];
 
       const result = await call(updateUserArgs);
-      console.log("result"+JSON.stringify(result));
-      if(result){
+      console.log('result' + JSON.stringify(result));
+      if (result) {
         toast.success('Profile updated successfully');
-      }else{
+      } else {
         toast.error('Failed to submit the form. Please try again.');
       }
     } catch (error) {
@@ -167,7 +191,7 @@ const ProfilePage = () => {
                     )}
                   />
 
-<FormField
+                  <FormField
                     control={form.control}
                     name="gender"
                     render={({ field }) => (
@@ -176,24 +200,36 @@ const ProfilePage = () => {
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                             className="grid grid-cols-2 gap-4 pt-2"
                           >
                             <Label
                               htmlFor="male"
                               className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-purple-700"
                             >
-                              <RadioGroupItem value="male" id="male" className="sr-only" />
+                              <RadioGroupItem
+                                value="male"
+                                id="male"
+                                className="sr-only"
+                              />
                               <Male className="mb-3 h-6 w-6" />
-                              <span className="text-sm font-medium leading-none">Male</span>
+                              <span className="text-sm font-medium leading-none">
+                                Male
+                              </span>
                             </Label>
                             <Label
                               htmlFor="female"
                               className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-purple-700"
                             >
-                              <RadioGroupItem value="female" id="female" className="sr-only" />
+                              <RadioGroupItem
+                                value="female"
+                                id="female"
+                                className="sr-only"
+                              />
                               <Female className="mb-3 h-6 w-6" />
-                              <span className="text-sm font-medium leading-none">Female</span>
+                              <span className="text-sm font-medium leading-none">
+                                Female
+                              </span>
                             </Label>
                           </RadioGroup>
                         </FormControl>
@@ -223,8 +259,10 @@ const ProfilePage = () => {
                         <FormControl>
                           <CountryDropdown
                             placeholder="Select your country"
-                            defaultValue={selectedCountry}
-                            onChange={handleCountryChange}
+                            value={field.value}
+                            onChange={(country) =>
+                              form.setValue('country', country.alpha3)
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -240,8 +278,9 @@ const ProfilePage = () => {
                         <FormLabel>Occupation</FormLabel>
                         <FormControl>
                           <OccupationDropdown
+                            value={field.value}
                             onChange={(occupation) =>
-                              form.setValue('occupation', occupation.name)
+                              form.setValue('occupation', occupation.id)
                             }
                           />
                         </FormControl>
@@ -253,22 +292,14 @@ const ProfilePage = () => {
                   <Button
                     type="submit"
                     className="w-full bg-purple-700 hover:bg-purple-800 font-bold"
-                    disabled={loading}
+                    disabled={loadingUpdate}
                   >
-                    {loading ? 'Updating...' : 'Submit'}
+                    {loadingUpdate ? 'Updating...' : 'Update'}
                   </Button>
-                  {/* {error && (
-                    <div className="text-red-500">{JSON.stringify(error)}</div>
-                  )} */}
+                  
                 </div>
               </form>
             </Form>
-            {/* <div className="mt-4 text-center text-sm">
-              Already have an account?{' '}
-              <Link to="#" className="underline">
-                Login
-              </Link>
-            </div> */}
           </CardContent>
         </Card>
       </div>

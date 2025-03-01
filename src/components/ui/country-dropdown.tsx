@@ -41,6 +41,7 @@ export interface Country {
 interface CountryDropdownProps {
   options?: Country[];
   onChange?: (country: Country) => void;
+  value?: string;
   defaultValue?: string;
   disabled?: boolean;
   placeholder?: string;
@@ -54,7 +55,7 @@ const CountryDropdownComponent = (
         country.emoji && country.status !== "deleted" && country.ioc !== "PRK"
     ),
     onChange,
-    defaultValue,
+    value,
     disabled = false,
     placeholder = "Select a country",
     slim = false,
@@ -63,29 +64,12 @@ const CountryDropdownComponent = (
   ref: React.ForwardedRef<HTMLButtonElement>
 ) => {
   const [open, setOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<Country | undefined>(
-    undefined
-  );
+  const selectedCountry = options.find((country) => country.alpha3 === value);
 
-  useEffect(() => {
-    if (defaultValue) {
-      const initialCountry = options.find(
-        (country) => country.alpha3 === defaultValue
-      );
-      if (initialCountry) {
-        setSelectedCountry(initialCountry);
-      } else {
-        setSelectedCountry(undefined);
-      }
-    } else {
-      setSelectedCountry(undefined);
-    }
-  }, [defaultValue, options]);
 
   const handleSelect = useCallback(
     (country: Country) => {
       console.log("🌍 CountryDropdown value: ", country);
-      setSelectedCountry(country);
       onChange?.(country);
       setOpen(false);
     },
@@ -99,12 +83,7 @@ const CountryDropdownComponent = (
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        ref={ref}
-        className={triggerClasses}
-        disabled={disabled}
-        {...props}
-      >
+      <PopoverTrigger ref={ref} className={triggerClasses} disabled={disabled} {...props}>
         {selectedCountry ? (
           <div className="flex items-center flex-grow w-0 gap-2 overflow-hidden">
             <div className="inline-flex items-center justify-center w-5 h-5 shrink-0 overflow-hidden rounded-full">
@@ -113,7 +92,7 @@ const CountryDropdownComponent = (
                 height={20}
               />
             </div>
-            {slim === false && (
+            {!slim && (
               <span className="overflow-hidden whitespace-nowrap">
                 {selectedCountry.name}
               </span>
@@ -121,11 +100,7 @@ const CountryDropdownComponent = (
           </div>
         ) : (
           <span className="text-gray-600">
-            {slim === false ? (
-              placeholder || setSelectedCountry.name
-            ) : (
-              <Globe size={20} />
-            )}
+            {!slim ? placeholder : <Globe size={20} />}
           </span>
         )}
         <ChevronDown size={16} className=" text-gray-600" />
@@ -164,7 +139,7 @@ const CountryDropdownComponent = (
                     <CheckIcon
                       className={cn(
                         "ml-auto h-4 w-4 shrink-0",
-                        option.name === selectedCountry?.name
+                        option.alpha3 === selectedCountry?.alpha3
                           ? "opacity-100"
                           : "opacity-0"
                       )}
@@ -178,6 +153,7 @@ const CountryDropdownComponent = (
     </Popover>
   );
 };
+
 
 CountryDropdownComponent.displayName = "CountryDropdownComponent";
 

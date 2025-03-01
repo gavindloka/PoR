@@ -109,44 +109,32 @@ const OccupationDropdownComponent = (
   {
     options = occupations,
     onChange,
-    defaultValue,
+    value, 
     disabled = false,
     placeholder = "Select an occupation",
     slim = false,
     ...props
-  }: OccupationDropdownProps,
+  }: OccupationDropdownProps & { value?: string }, 
   ref: React.ForwardedRef<HTMLButtonElement>,
 ) => {
-  const [open, setOpen] = useState(false)
-  const [selectedOccupation, setSelectedOccupation] = useState<Occupation | undefined>(undefined)
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (defaultValue) {
-      const initialOccupation = options.find((occupation) => occupation.id === defaultValue)
-      if (initialOccupation) {
-        setSelectedOccupation(initialOccupation)
-      } else {
-        setSelectedOccupation(undefined)
-      }
-    } else {
-      setSelectedOccupation(undefined)
-    }
-  }, [defaultValue, options])
+  const selectedOccupation = options.find((occupation) => occupation.id === value);
 
   const handleSelect = useCallback(
     (occupation: Occupation) => {
-      console.log("💼 OccupationDropdown value: ", occupation)
-      setSelectedOccupation(occupation)
-      onChange?.(occupation)
-      setOpen(false)
+      console.log("💼 Selected Occupation:", occupation);
+      onChange?.(occupation);
+      setOpen(false);
     },
     [onChange],
-  )
+  );
 
   const triggerClasses = cn(
     "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
     slim === true && "w-20",
-  )
+  );
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger ref={ref} className={triggerClasses} disabled={disabled} {...props}>
@@ -185,10 +173,10 @@ const OccupationDropdownComponent = (
         </Command>
       </PopoverContent>
     </Popover>
-  )
-}
+  );
+};
 
-OccupationDropdownComponent.displayName = "OccupationDropdownComponent"
+OccupationDropdownComponent.displayName = "OccupationDropdownComponent";
+export const OccupationDropdown = forwardRef(OccupationDropdownComponent);
 
-export const OccupationDropdown = forwardRef(OccupationDropdownComponent)
 
