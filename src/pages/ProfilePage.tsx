@@ -27,7 +27,7 @@ import { OccupationDropdown } from '@/components/ui/occupation-dropdown';
 import { useAuth, useQueryCall, useUpdateCall } from '@ic-reactor/react';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
-import { Mars as Male, Venus as Female } from 'lucide-react';
+import { Mars as Male, Venus as Female, User } from 'lucide-react';
 import { Backend, Response_1 } from '@/declarations/backend/backend.did';
 
 const formSchema = z.object({
@@ -201,7 +201,7 @@ const ProfilePage = () => {
                           <RadioGroup
                             onValueChange={field.onChange}
                             value={field.value}
-                            className="grid grid-cols-2 gap-4 pt-2"
+                            className="grid grid-cols-3 gap-4 pt-2"
                           >
                             <Label
                               htmlFor="male"
@@ -229,6 +229,20 @@ const ProfilePage = () => {
                               <Female className="mb-3 h-6 w-6" />
                               <span className="text-sm font-medium leading-none">
                                 Female
+                              </span>
+                            </Label>
+                            <Label
+                              htmlFor="other"
+                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-purple-700"
+                            >
+                              <RadioGroupItem
+                                value="other"
+                                id="other"
+                                className="sr-only"
+                              />
+                              <User className="mb-3 h-6 w-6" />
+                              <span className="text-sm font-medium leading-none">
+                                Other
                               </span>
                             </Label>
                           </RadioGroup>
@@ -259,7 +273,7 @@ const ProfilePage = () => {
                         <FormControl>
                           <CountryDropdown
                             placeholder="Select your country"
-                            value={field.value}
+                            value={field.value || undefined}
                             onChange={(country) =>
                               form.setValue('country', country.alpha3)
                             }

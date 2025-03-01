@@ -83,7 +83,9 @@ export const Navbar = (props: Props) => {
             </Link>
           </div>
         </div>
-        {/* <div>
+        <div className="flex gap-3 items-center">
+        <div>
+          <p>
           <CandidAdapterProvider>
             <ActorProvider
               canisterId={'ryjl3-tyaaa-aaaaa-aaaba-cai'}
@@ -93,11 +95,8 @@ export const Navbar = (props: Props) => {
               <Balance />
             </ActorProvider>
           </CandidAdapterProvider>
-        </div> */}
-        <div className="flex gap-3">
-          <div>
-            <WalletButton />
-          </div>
+          </p>
+        </div>
           {authenticated ? (
             <Button
               onClick={() => logout()}
