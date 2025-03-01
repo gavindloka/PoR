@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Question, QuestionType, Option } from './form-builder';
+import type { Question, QuestionType, Option } from './FormBuilder';
 
 interface QuestionFieldProps {
   question: Question;
@@ -128,48 +128,48 @@ export default function QuestionField({
       {(question.type === 'multiple-choice' ||
         question.type === 'checkboxes' ||
         question.type === 'dropdown') && (
-        <div className="space-y-2">
-          {question.options?.map((option, index) => (
-            <div key={option.id} className="flex items-center gap-2">
-              <div className="w-6 flex justify-center">
-                {question.type === 'multiple-choice' && (
-                  <div className="w-4 h-4 rounded-full border border-primary" />
-                )}
-                {question.type === 'checkboxes' && (
-                  <div className="w-4 h-4 rounded border border-primary" />
-                )}
-                {question.type === 'dropdown' && (
-                  <span className="text-sm text-muted-foreground">
-                    {index + 1}.
-                  </span>
-                )}
+          <div className="space-y-2">
+            {question.options?.map((option, index) => (
+              <div key={option.id} className="flex items-center gap-2">
+                <div className="w-6 flex justify-center">
+                  {question.type === 'multiple-choice' && (
+                    <div className="w-4 h-4 rounded-full border border-primary" />
+                  )}
+                  {question.type === 'checkboxes' && (
+                    <div className="w-4 h-4 rounded border border-primary" />
+                  )}
+                  {question.type === 'dropdown' && (
+                    <span className="text-sm text-muted-foreground">
+                      {index + 1}.
+                    </span>
+                  )}
+                </div>
+                <Input
+                  value={option.value}
+                  onChange={(e) => updateOption(index, e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeOption(index)}
+                  disabled={!question.options || question.options.length <= 2}
+                >
+                  <X size={16} />
+                </Button>
               </div>
-              <Input
-                value={option.value}
-                onChange={(e) => updateOption(index, e.target.value)}
-                className="flex-1"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeOption(index)}
-                disabled={!question.options || question.options.length <= 2}
-              >
-                <X size={16} />
-              </Button>
-            </div>
-          ))}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-8"
-            onClick={addOption}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add option
-          </Button>
-        </div>
-      )}
+            ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-8"
+              onClick={addOption}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add option
+            </Button>
+          </div>
+        )}
 
       <div className="flex items-center space-x-2">
         <Switch.Root

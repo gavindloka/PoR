@@ -1,4 +1,4 @@
-import FormBuilder from '@/components/form-builder';
+import FormBuilder from '@/components/FormBuilder';
 import React from 'react';
 
 export const AddSurvey = () => {
