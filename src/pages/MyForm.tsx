@@ -64,7 +64,7 @@ const forms = [
 
 export default function FormManagement() {
   return (
-    <div className="container mx-auto py-10 px-4">
+    <div className="container mx-auto py-10 px-20">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">My Forms</h1>

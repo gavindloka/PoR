@@ -10,6 +10,7 @@ import GetVerifiedPage from '@/pages/GetVerifiedPage';
 import ProfilePage from '@/pages/ProfilePage';
 import { AddSurvey } from '@/pages/AddSurvey';
 import FormManagement from '@/pages/MyForm';
+import BrowseSurveys from '@/pages/BrowsePage';
 
 export const router = createBrowserRouter([
   {
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
       {
         path: '/',
         element: <HomePage />,
+      },
+      {
+        path: '/browse',
+        element: <BrowseSurveys />,
       },
       {
         path: '/test',
