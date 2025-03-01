@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { PlusCircle, Trash2, Copy, GripVertical } from 'lucide-react';
@@ -87,7 +86,7 @@ export default function FormBuilder() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto mb-10">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="relative flex w-full bg-purple-600 p-1 rounded-lg text-white">
           <TabsTrigger

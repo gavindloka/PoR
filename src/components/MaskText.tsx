@@ -6,7 +6,11 @@ export function MaskText({ phrases }: { phrases: string[] }) {
     initial: { y: '100%' },
     enter: (i: number) => ({
       y: '0',
-      transition: { duration: 0.75, ease: [0.33, 1, 0.68, 1], delay: 0.5 + 0.1 * i },
+      transition: {
+        duration: 0.75,
+        ease: [0.33, 1, 0.68, 1],
+        delay: 0.5 + 0.1 * i,
+      },
     }),
   };
 
@@ -25,7 +29,7 @@ export function MaskText({ phrases }: { phrases: string[] }) {
               variants={animation}
               initial="initial"
               animate={inView ? 'enter' : ''}
-              className=""
+              className="text-4xl"
             >
               {phrase}
             </motion.p>

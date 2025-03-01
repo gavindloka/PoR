@@ -18,6 +18,9 @@ import {
 } from 'lucide-react';
 import { delay } from 'motion';
 import { MaskText } from '@/components/MaskText';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { AvatarFallback, AvatarImage, Avatar } from '@/components/ui/avatar';
 
 const HomePage = () => {
   const containerVariants = {
@@ -58,7 +61,53 @@ const HomePage = () => {
       transition: { duration: 0.8, ease: 'easeInOut' },
     },
   };
+  interface TestimonialProps {
+    name: string;
+    role: string;
+    content: string;
+    avatar: string;
+  }
 
+  const Testimonial = ({ name, role, content, avatar }: TestimonialProps) => (
+    <Card className="bg-white/50 backdrop-blur-sm border border-purple-100">
+      <CardContent className="pt-6">
+        <div className="flex items-start gap-4">
+          <Avatar className="h-10 w-10 border-2 border-purple-200">
+            <AvatarImage src={avatar} alt={name} />
+            <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-medium text-purple-900">{name}</p>
+            <p className="text-sm text-purple-600">{role}</p>
+          </div>
+        </div>
+        <p className="mt-4 text-gray-600 italic">{content}</p>
+      </CardContent>
+    </Card>
+  );
+  const testimonials = [
+    {
+      name: 'Sarah Johnson',
+      role: 'Research Director',
+      content:
+        'DeAI has revolutionized how we conduct market research. The verification system ensures we get quality data every time.',
+      avatar: '/placeholder.svg?height=40&width=40',
+    },
+    {
+      name: 'Michael Chen',
+      role: 'Data Scientist',
+      content:
+        "The blockchain integration provides a level of data integrity I've never seen before in survey platforms.",
+      avatar: '/placeholder.svg?height=40&width=40',
+    },
+    {
+      name: 'Elena Rodriguez',
+      role: 'Academic Researcher',
+      content:
+        'The reward system has dramatically increased our response rates while maintaining high quality submissions.',
+      avatar: '/placeholder.svg?height=40&width=40',
+    },
+  ];
   const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -359,9 +408,37 @@ const HomePage = () => {
           ))}
         </div>
       </motion.section>
+
+      <section className="w-full px-4 md:px-8 lg:px-20 py-20 bg-gradient-to-b from-white to-purple-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-purple-100 text-purple-800 hover:bg-purple-200 px-4 py-1.5">
+              Success Stories
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold text-purple-800">
+              What Our Users Say
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.2 }}
+                viewport={{ once: true }}
+              >
+                <Testimonial {...testimonial} />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <motion.div
         ref={sectionRef}
-        className="w-full py-20 flex justify-center bg-white px-32 items-center gap-12"
+        className="w-full pt-10 pb-20 flex justify-center bg-white px-32 items-center gap-12"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
