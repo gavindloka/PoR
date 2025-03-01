@@ -1,7 +1,16 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Camera, CheckCircle, ImageUp, RefreshCw, Shield, User } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
+import {
+  Camera,
+  CheckCircle,
+  Image,
+  ImageUp,
+  RefreshCw,
+  Shield,
+  Upload,
+  User,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,6 +22,7 @@ import { useAuth, useQueryCall, useUpdateCall } from '@ic-reactor/react';
 import { toast } from 'sonner';
 import type { Backend, Response_1 } from '../declarations/backend/backend.did';
 import { Link } from 'react-router';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function GetVerifiedPage() {
   const { identity } = useAuth();
@@ -93,6 +103,50 @@ export default function GetVerifiedPage() {
   useEffect(() => {
     console.log('Blob Updated:', blob);
   }, [blob]);
+
+  async function handleFileUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('File too large', {
+        description: 'Please upload an image smaller than 2MB',
+      });
+      return;
+    }
+
+    if (file.type !== 'image/png') {
+      toast.error('Invalid file type', {
+        description: 'Please upload a PNG image',
+      });
+      return;
+    }
+
+    try {
+      const imageDataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) resolve(e.target.result as string);
+          else reject('Failed to read file');
+        };
+        reader.readAsDataURL(file);
+      });
+
+      setUploadedImage(imageDataUrl);
+
+      const response = await fetch(imageDataUrl);
+      const fileBlob = await response.blob();
+      const arrayBuffer = await fileBlob.arrayBuffer();
+      setBlob(new Uint8Array(arrayBuffer));
+
+      console.log('Uploaded Image:', imageDataUrl);
+    } catch (error) {
+      console.error('Error processing uploaded file:', error);
+      toast.error('Error processing file', {
+        description: 'An error occurred while uploading the image.',
+      });
+    }
+  }
 
   async function captureImage(): Promise<void> {
     const video = videoRef.current;
@@ -181,7 +235,11 @@ export default function GetVerifiedPage() {
     }
   }, [isVerified]);
 
-  const { call, data } = useUpdateCall({
+  const {
+    call,
+    data,
+    error: verifyError,
+  } = useUpdateCall({
     functionName: 'verify',
     args: [blob],
     onLoading: (loading) => {
@@ -233,47 +291,13 @@ export default function GetVerifiedPage() {
       stopCamera();
     };
   }, []);
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File too large', {
-        description: 'Please upload an image smaller than 5MB.',
-      });
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Invalid file type', {
-        description: 'Please upload an image file (JPEG, PNG, etc.).',
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setUploadedImage(result);
-
-      const binaryString = atob(result.split(',')[1]);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      setBlob(bytes);
-    };
-    reader.readAsDataURL(file);
-  };
 
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   };
 
   return (
-    <div className="flex flex-col items-center justify-center pt-10 px-20 font-satoshi">
+    <div className="flex flex-col items-center justify-center py-10 px-20 font-satoshi">
       {!loading && user && 'err' in user && (
         <Card className="w-full border-purple-200 shadow-lg">
           <CardHeader className="bg-purple-700 text-white rounded-t-lg">
@@ -283,179 +307,162 @@ export default function GetVerifiedPage() {
             </div>
             <CardDescription className="text-purple-100">
               Capture a clear photo of yourself to authenticate your identity
-              before accessing/creating surveys.
+              before accessing/creating surveys
             </CardDescription>
           </CardHeader>
-          <div className="flex border-b border-purple-200">
-            <button
-              className={`px-4 py-3 font-medium text-sm flex items-center ${
-                activeTab === 'camera'
-                  ? 'text-purple-700 border-b-2 border-purple-700'
-                  : 'text-gray-500 hover:text-purple-600'
-              }`}
-              onClick={() => setActiveTab('camera')}
-            >
-              <Camera className="mr-2 h-4 w-4" />
-              Camera
-            </button>
-            <button
-              className={`px-4 py-3 font-medium text-sm flex items-center ${
-                activeTab === 'upload'
-                  ? 'text-purple-700 border-b-2 border-purple-700'
-                  : 'text-gray-500 hover:text-purple-600'
-              }`}
-              onClick={() => setActiveTab('upload')}
-            >
-              <User className="mr-2 h-4 w-4" />
-              Upload Photo
-            </button>
-          </div>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="w-full grid grid-cols-2 h-14 p-1 bg-gray-100 dark:bg-gray-800 shadow-sm">
+              <TabsTrigger
+                value="camera"
+                className="flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-gray-600 dark:text-gray-300 font-medium transition-all 
+      hover:bg-gray-200 dark:hover:bg-gray-700 
+      data-[state=active]:bg-purple-700 dark:data-[state=active]:bg-gray-900 
+      data-[state=active]:text-white data-[state=active]:shadow-md"
+              >
+                <Camera className="h-5 w-5" />
+                <span>Camera</span>
+              </TabsTrigger>
 
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="flex-1 p-6">
-              <div className="flex justify-center">
-                <div className="relative rounded-lg w-full h-96 overflow-hidden bg-black">
-                  {activeTab === 'camera' ? (
-                    <>
-                      {!isCameraActive && !capturedImage && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-purple-900/80">
-                          <User className="h-16 w-16 mb-2 opacity-70" />
-                          <p className="text-center px-4">
-                            Click the button to start the camera
-                          </p>
-                        </div>
-                      )}
+              <TabsTrigger
+                value="upload"
+                className="flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-gray-600 dark:text-gray-300 font-medium transition-all 
+      hover:bg-gray-200 dark:hover:bg-gray-700 
+      data-[state=active]:bg-purple-700 dark:data-[state=active]:bg-gray-900 
+      data-[state=active]:text-white data-[state=active]:shadow-md"
+              >
+                <Upload className="h-5 w-5" />
+                <span>Upload Photo</span>
+              </TabsTrigger>
+            </TabsList>
 
-                      {capturedImage ? (
-                        <img
-                          src={capturedImage || '/placeholder.svg'}
-                          alt="Captured"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <video
-                          ref={videoRef}
-                          autoPlay
-                          playsInline
-                          muted
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                      <canvas ref={canvasRef} className="hidden" />
-                    </>
-                  ) : (
-                    <div className="h-full w-full flex flex-col items-center justify-center bg-black">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileUpload}
-                        accept="image/*"
-                        className="hidden"
-                      />
-
-                      {uploadedImage ? (
-                        <img
-                          src={uploadedImage || '/placeholder.svg'}
-                          alt="Uploaded"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-center p-6">
+            <div className="flex flex-col md:flex-row items-center">
+              <div className="flex-1 p-6">
+                <div className="flex justify-center">
+                  <div className="relative rounded-lg w-full h-96 overflow-hidden bg-black">
+                    {activeTab === 'camera' ? (
+                      <>
+                        {!isCameraActive && !capturedImage && (
                           <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-purple-900/80">
-                            <ImageUp className="h-16 w-16 mb-2 opacity-70" />
+                            <User className="h-16 w-16 mb-2 opacity-70" />
                             <p className="text-center px-4">
-                              Please upload a clear photo of your face for
-                              verification
+                              Click the button to start the camera
                             </p>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        )}
+
+                        {capturedImage ? (
+                          <img
+                            src={capturedImage || '/placeholder.svg'}
+                            alt="Captured"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                        <canvas ref={canvasRef} className="hidden" />
+                      </>
+                    ) : (
+                      <div className="h-full w-full flex flex-col items-center justify-center bg-black">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+
+                        {uploadedImage ? (
+                          <img
+                            src={uploadedImage || '/placeholder.svg'}
+                            alt="Uploaded"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-center p-6">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-white bg-purple-900/80">
+                              <ImageUp className="h-16 w-16 mb-2 opacity-70" />
+                              <p className="text-center px-4">
+                                Please upload a clear photo of your face for
+                                verification
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex-1 p-6 flex flex-col">
-              <div className="space-y-4 mb-6 flex-grow">
-                <h3 className="font-medium text-purple-800 text-xl flex items-center">
-                  <CheckCircle className="mr-2 h-5 w-5" />
-                  Verification Guidelines
-                </h3>
-                <ul className="text-gray-600 space-y-3 ml-3">
-                  {[
-                    'Ensure your face is clearly visible',
-                    'Remove sunglasses or any face coverings',
-                    'Find a well-lit environment',
-                    'Look directly at the camera',
-                  ].map((item, index) => (
-                    <li key={index} className="flex items-center">
-                      <CheckCircle className="mr-3 h-5 w-5 text-purple-500 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="flex-1 p-6 flex flex-col">
+                <div className="space-y-4 mb-6 flex-grow">
+                  <h3 className="font-medium text-purple-800 text-xl flex items-center">
+                    <CheckCircle className="mr-2 h-5 w-5" />
+                    Verification Guidelines
+                  </h3>
+                  <ul className="text-gray-600 space-y-3 ml-3">
+                    {[
+                      'Ensure your face is clearly visible',
+                      'Remove sunglasses or any face coverings',
+                      'Find a well-lit environment',
+                      'Look directly at the camera',
+                    ].map((item, index) => (
+                      <li key={index} className="flex items-center">
+                        <CheckCircle className="mr-3 h-5 w-5 text-purple-500 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-                <div className="mt-6 pt-4 border-t border-purple-100">
-                  <h4 className="font-medium text-purple-800 text-xl flex items-center mb-2">
-                    <Shield className="mr-2 h-5 w-5" />
-                    Why we need verification?
-                  </h4>
-                  <p className="text-gray-600">
-                    Verification helps us maintain a secure platform and protect
-                    our community from fraud. Your identity will be kept
-                    confidential and only used for verification purposes.
-                  </p>
+                  <div className="mt-6 pt-4 border-t border-purple-100">
+                    <h4 className="font-medium text-purple-800 text-xl flex items-center mb-2">
+                      <Shield className="mr-2 h-5 w-5" />
+                      Why we need verification?
+                    </h4>
+                    <p className="text-gray-600">
+                      Verification helps us maintain a secure platform and
+                      protect our community from fraud. Your identity will be
+                      kept confidential and only used for verification purposes.
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="mt-auto">
-                {activeTab === 'camera' ? (
-                  !isCameraActive && !capturedImage ? (
-                    <Button
-                      onClick={startCamera}
-                      className="w-full bg-purple-700 hover:bg-purple-800"
-                    >
-                      <Camera className="mr-2 h-4 w-4" />
-                      Start Camera
-                    </Button>
-                  ) : !capturedImage ? (
-                    <Button
-                      onClick={captureImage}
-                      className="w-full bg-purple-700 hover:bg-purple-800"
-                    >
-                      Take Photo
-                    </Button>
-                  ) : (
-                    <div className="flex gap-3 w-full">
+                <div className="mt-auto">
+                  {activeTab === 'camera' ? (
+                    !isCameraActive && !capturedImage ? (
                       <Button
-                        onClick={retakePhoto}
-                        variant="outline"
-                        className="flex-1 border-purple-300"
+                        onClick={startCamera}
+                        className="w-full bg-purple-700 hover:bg-purple-800"
                       >
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Retake
+                        <Camera className="mr-2 h-4 w-4" />
+                        Start Camera
                       </Button>
+                    ) : !capturedImage ? (
                       <Button
-                        onClick={handleSubmit}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700"
+                        onClick={captureImage}
+                        className="w-full bg-purple-700 hover:bg-purple-800"
                       >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Submit
+                        Take Photo
                       </Button>
-                    </div>
-                  )
-                ) : (
-                  <div className="flex gap-3 w-full">
-                    {uploadedImage ? (
-                      <>
+                    ) : (
+                      <div className="flex gap-3 w-full">
                         <Button
-                          onClick={resetUpload}
+                          onClick={retakePhoto}
                           variant="outline"
                           className="flex-1 border-purple-300"
                         >
                           <RefreshCw className="mr-2 h-4 w-4" />
-                          Choose Another
+                          Retake
                         </Button>
                         <Button
                           onClick={handleSubmit}
@@ -464,24 +471,46 @@ export default function GetVerifiedPage() {
                           <CheckCircle className="mr-2 h-4 w-4" />
                           Submit
                         </Button>
-                      </>
-                    ) : (
-                      <Button
-                        onClick={triggerFileUpload}
-                        className="w-full bg-purple-700 hover:bg-purple-800"
-                      >
-                        <User className="mr-2 h-4 w-4" />
-                        Choose Photo
-                      </Button>
-                    )}
-                  </div>
-                )}
-                <p className="text-xs text-center text-purple-700 mt-3">
-                  Your photo will only be used for verification purposes
-                </p>
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex gap-3 w-full">
+                      {uploadedImage ? (
+                        <>
+                          <Button
+                            onClick={resetUpload}
+                            variant="outline"
+                            className="flex-1 border-purple-300"
+                          >
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Choose Another
+                          </Button>
+                          <Button
+                            onClick={handleSubmit}
+                            className="flex-1 bg-purple-600 hover:bg-purple-700"
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Submit
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          onClick={triggerFileUpload}
+                          className="w-full bg-purple-700 hover:bg-purple-800"
+                        >
+                          <ImageUp className="mr-2 h-4 w-4" />
+                          Choose Photo
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  <p className="text-xs text-center text-purple-700 mt-3">
+                    Your photo will only be used for verification purposes
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          </Tabs>
         </Card>
       )}
 
