@@ -102,7 +102,7 @@ export const Navbar = () => {
     if (shouldReload && authenticated) {
       setTimeout(() => {
         window.location.reload();
-      },250)
+      }, 250);
     }
   }, [shouldReload, authenticated]);
   return (
@@ -121,12 +121,6 @@ export const Navbar = () => {
           </Link>
           <div className="ml-3 hidden sm:flex sm:gap-4">
             <Link
-              to="/"
-              className="hover:text-purple-700 duration-200 font-normal"
-            >
-              Home
-            </Link>
-            <Link
               to="/browse"
               className="hover:text-purple-700 duration-200 font-normal"
             >
@@ -136,22 +130,14 @@ export const Navbar = () => {
               to="/forms"
               className="hover:text-purple-700 duration-200 font-normal"
             >
-              Create
+              MyForms
             </Link>
           </div>
         </div>
         <div className="flex gap-3 items-center">
           {authenticated && (
             <div>
-              <CandidAdapterProvider>
-                <ActorProvider
-                  canisterId={'ryjl3-tyaaa-aaaaa-aaaba-cai'}
-                  idlFactory={idlFactory}
-                  loadingComponent={<div>Loading Icp Ledger...</div>}
-                >
-                  <Balance />
-                </ActorProvider>
-              </CandidAdapterProvider>
+              <Balance />
             </div>
           )}
           {authenticated ? (

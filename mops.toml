@@ -1,5 +1,4 @@
-# Motoko dependencies (https://mops.one/)
-
 [dependencies]
 base = "0.7.4"
 uuid = "1.0.0"
+deflate = "0.1.0"

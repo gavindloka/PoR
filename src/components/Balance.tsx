@@ -20,15 +20,17 @@ export const Balance = () => {
     args: [{ owner: principal, subaccount: [] }],
   });
   const balance = data
-    ? JSON.stringify(data, (_, v) => (typeof v === 'bigint' ? v.toString() : v))
+    ? JSON.stringify(data, (_, v) =>
+        typeof v === 'bigint' ? (Number(v) / 100_000_000).toFixed(3) : v,
+      )
     : '0';
 
   useEffect(() => {
-    call()
-    console.log(balance)
-    if(error) console.error("Balance error: "+error)
-  }, [])
-  
+    call();
+    console.log(balance);
+    if (error) console.error('Balance error: ' + error);
+  }, []);
+
   return (
     <div className="flex items-center justify-center">
       <Button

@@ -1,7 +1,7 @@
 {
   "canisters": {
     "internet_identity": {
-      "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
+      "candid": "local_II/internet_identity.did",
       "frontend": {},
       "remote": {
         "id": {
@@ -9,7 +9,7 @@
         }
       },
       "type": "custom",
-      "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm.gz"
+      "wasm": "local_II/internet_identity_dev.wasm.gz"
     },
     "auth": {
       "type": "motoko",
@@ -31,6 +31,16 @@
       "main": "backend/Backend.mo",
       "declarations": {
         "node_compatibility": true
+      }
+    },
+    "icp_index_canister": {
+      "type": "custom",
+      "candid": "https://raw.githubusercontent.com/dfinity/ic/2f02a660f6f17b5a78c13d9b372f74c8228f79b8/rs/ledger_suite/icp/index/index.did",
+      "wasm": "https://download.dfinity.systems/ic/2f02a660f6f17b5a78c13d9b372f74c8228f79b8/canisters/ic-icp-index-canister.wasm.gz",
+      "remote": {
+        "id": {
+          "ic": "qhbym-qaaaa-aaaaa-aaafq-cai"
+        }
       }
     },
     "icp_ledger_canister": {
@@ -69,7 +79,6 @@
       "package": "backend_ai",
       "type": "custom",
       "wasm": "target/wasm32-wasip1/release/backend_ai-ic.wasm"
-
     }
   },
   "defaults": {
