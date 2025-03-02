@@ -137,7 +137,15 @@ export const Navbar = () => {
         <div className="flex gap-3 items-center">
           {authenticated && (
             <div>
-              <Balance />
+              <CandidAdapterProvider>
+                <ActorProvider
+                  canisterId={'ryjl3-tyaaa-aaaaa-aaaba-cai'}
+                  idlFactory={idlFactory}
+                  loadingComponent={<div>Loading Icp Ledger...</div>}
+                >
+                  <Balance />
+                </ActorProvider>
+              </CandidAdapterProvider>
             </div>
           )}
           {authenticated ? (

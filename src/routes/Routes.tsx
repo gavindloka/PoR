@@ -11,6 +11,7 @@ import ProfilePage from '@/pages/ProfilePage';
 import { AddSurvey } from '@/pages/AddSurvey';
 import FormManagement from '@/pages/MyForm';
 import BrowseSurveys from '@/pages/BrowsePage';
+import { WrapTest } from '@/components/WrapTest';
 
 export const router = createBrowserRouter([
   {
@@ -47,7 +48,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '/test',
-        element: <TestPage />,
+        element: <WrapTest />,
       },
       {
         path: '/verified',
