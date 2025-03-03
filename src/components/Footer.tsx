@@ -106,26 +106,6 @@ export const Footer = (props: Props) => {
             <p className="text-purple-200 text-sm backdrop-blur-sm px-4 py-2 rounded-full bg-white/5">
               © 2025 Proof Of Research. All rights reserved.
             </p>
-            {/* <div className="flex flex-wrap justify-center gap-4 mt-6 md:mt-0">
-              <a
-                href="#"
-                className="text-purple-200 hover:text-white text-sm transition-colors duration-300 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 backdrop-blur-sm"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="#"
-                className="text-purple-200 hover:text-white text-sm transition-colors duration-300 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 backdrop-blur-sm"
-              >
-                Terms of Service
-              </a>
-              <a
-                href="#"
-                className="text-purple-200 hover:text-white text-sm transition-colors duration-300 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 backdrop-blur-sm"
-              >
-                Contact Us
-              </a>
-            </div> */}
           </div>
         </div>
       </div>

@@ -130,7 +130,7 @@ export const Navbar = () => {
               to="/forms"
               className="hover:text-purple-700 duration-200 font-normal"
             >
-              MyForms
+              My Forms
             </Link>
           </div>
         </div>

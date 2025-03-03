@@ -27,8 +27,6 @@ import { toast } from 'sonner';
 import type { Backend, Response_1 } from '../declarations/backend/backend.did';
 import { Link } from 'react-router';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { idlFactory } from '@/declarations/icp_ledger_canister';
-import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
 
 export default function GetVerifiedPage() {
   const { identity } = useAuth();
@@ -289,7 +287,6 @@ export default function GetVerifiedPage() {
       setTimeout(() => {
         toast.dismiss('verification-loading');
       }, 3000);
-      // console.log("ini user "+user);
     },
   });
 
