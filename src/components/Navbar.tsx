@@ -53,7 +53,6 @@ export const Navbar = () => {
       window.removeEventListener('scroll', controlNavbar);
     };
   }, [lastScrollY]);
-  console.log(identity?.getPrincipal().toText());
 
   const {
     loading,
@@ -107,9 +106,8 @@ export const Navbar = () => {
   }, [shouldReload, authenticated]);
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
-        isVisible ? 'translate-y-0' : '-translate-y-full'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
     >
       <div className="bg-white mx-4 md:mx-20 flex justify-between items-center py-3 px-10 font-satoshi mt-3 rounded-xl border-gray-100 border shadow-lg">
         <div className="flex gap-4 items-center">

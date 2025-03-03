@@ -1,107 +1,136 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { PlusCircle, Trash2, Copy, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import QuestionField from './QuestionField';
 import FormPreview from './FormPreview';
+import type { Backend, Form, FormMetadata, Question } from '../declarations/backend/backend.did.d.ts';
+import { Principal } from '@ic-reactor/react/dist/types';
+import { useUpdateCall } from '@ic-reactor/react';
+import { toast } from 'sonner';
 
-export type QuestionType =
-  | 'short-answer'
-  | 'paragraph'
-  | 'multiple-choice'
-  | 'checkboxes'
-  | 'dropdown';
-
-export interface Option {
-  id: string;
-  value: string;
+type Props = {
+  originalForm: Form;
 }
 
-export interface Question {
+export type LocalForm = {
+  questions: WithId<Question>[];
   id: string;
-  type: QuestionType;
-  title: string;
-  required: boolean;
-  options?: Option[];
+  creator: Principal;
+  metadata: FormMetadata;
+  createdAt: bigint;
 }
 
-export default function FormBuilder() {
-  const [formTitle, setFormTitle] = useState('Untitled Form');
-  const [formDescription, setFormDescription] = useState('');
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: 'q1',
-      type: 'short-answer',
-      title: 'What is your name?',
-      required: true,
-    },
-  ]);
+export type WithId<T> = T & { _id: string };
+
+export function giveId<T extends object>(any: T): WithId<T> {
+  return { ...any, _id: crypto.randomUUID() };
+}
+
+function removeId<T extends { _id: string }>(any: T): Omit<T, "_id"> {
+  const { _id, ...rest } = any;
+  return rest as Omit<T, "_id">;
+}
+
+function useDebouncedEffect(callback: () => void, dependencies: any[], delay: number = 1000) {
+  useEffect(() => {
+    const handler = setTimeout(callback, delay);
+    return () => clearTimeout(handler); // Clear timeout if dependencies change before delay
+  }, dependencies);
+}
+
+export default function FormBuilder({ originalForm }: Props) {
+  const form = {
+    ...originalForm,
+    questions: originalForm.questions.map(giveId),
+  };
+  const [currentForm, setCurrentForm] = useState(form);
   const [activeTab, setActiveTab] = useState('edit');
+  const { call: updateMetadata } = useUpdateCall<Backend>({
+    functionName: 'updateFormMetadata'
+  });
+  const { call: updateQuestions } = useUpdateCall<Backend>({
+    functionName: 'setFormQuestions'
+  });
+
+  useDebouncedEffect(() => {
+    console.log("Called update");
+    updateMetadata([currentForm.id, currentForm.metadata])
+      .then((response) => {
+        if (response && "err" in response) {
+          toast.error(response.err);
+        }
+      })
+      .catch((error) => {
+        toast.error(error)
+      });
+    updateQuestions([currentForm.id, currentForm.questions.map((question) => removeId(question))])
+      .then((response) => {
+        if (response && "err" in response) {
+          toast.error(response.err);
+        }
+      })
+      .catch((error) => {
+        toast.error(error)
+      });
+  }, [currentForm]);
 
   const addQuestion = () => {
     const newQuestion: Question = {
-      id: `q${questions.length + 1}`,
-      type: 'short-answer',
-      title: 'Untitled Question',
-      required: false,
+      formId: form.id,
+      isRequired: true,
+      questionTitle: "Untitled Question",
+      questionType: { "Essay": null },
     };
-    setQuestions([...questions, newQuestion]);
+    currentForm.questions.push(giveId(newQuestion));
+    setCurrentForm({ ...currentForm });
   };
 
   const duplicateQuestion = (index: number) => {
-    const questionToDuplicate = questions[index];
-    const duplicatedQuestion = {
-      ...questionToDuplicate,
-      id: `q${questions.length + 1}`,
-    };
-    const newQuestions = [...questions];
-    newQuestions.splice(index + 1, 0, duplicatedQuestion);
-    setQuestions(newQuestions);
+    const questionToDuplicate = currentForm.questions[index];
+    const duplicatedQuestion = giveId({ ...questionToDuplicate });
+    currentForm.questions.splice(index + 1, 0, duplicatedQuestion);
+    setCurrentForm({ ...currentForm });
   };
 
   const removeQuestion = (index: number) => {
-    const newQuestions = [...questions];
+    const newQuestions = [...currentForm.questions];
     newQuestions.splice(index, 1);
-    setQuestions(newQuestions);
+    setCurrentForm({ ...currentForm, questions: newQuestions });
   };
 
-  const updateQuestion = (index: number, updatedQuestion: Question) => {
-    const newQuestions = [...questions];
+  const updateQuestion = (index: number, updatedQuestion: WithId<Question>) => {
+    const newQuestions = [...currentForm.questions];
     newQuestions[index] = updatedQuestion;
-    setQuestions(newQuestions);
+    setCurrentForm({ ...currentForm, questions: newQuestions });
   };
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
-    const items = Array.from(questions);
+    const items = [...currentForm.questions];
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    setQuestions(items);
+    setCurrentForm({ ...currentForm, questions: items });
   };
+
 
   return (
     <div className="max-w-3xl mx-auto mb-10">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="relative flex w-full bg-purple-600 p-1 rounded-lg text-white">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger
             value="edit"
-            className="relative flex-1 px-4 py-2 text-center font-medium transition-all 
-                 data-[state=active]:bg-white data-[state=active]:text-purple-600 
-                 data-[state=active]:rounded-lg hover:bg-purple-500 hover:bg-opacity-30"
           >
             Edit
           </TabsTrigger>
           <TabsTrigger
             value="preview"
-            className="relative flex-1 px-4 py-2 text-center font-medium transition-all 
-                 data-[state=active]:bg-white data-[state=active]:text-purple-600 
-                 data-[state=active]:rounded-lg hover:bg-purple-500 hover:bg-opacity-30"
           >
             Preview
           </TabsTrigger>
@@ -114,15 +143,15 @@ export default function FormBuilder() {
           <Card>
             <CardContent className="pt-6">
               <Input
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
+                value={currentForm.metadata.title}
+                onChange={(e) => setCurrentForm({ ...currentForm, metadata: { ...currentForm.metadata, title: e.currentTarget.value } })}
                 className=" font-bold border-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 "
                 style={{ fontSize: '1.5rem' }}
                 placeholder="Form Title"
               />
               <Textarea
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
+                value={currentForm.metadata.description}
+                onChange={(e) => setCurrentForm({ ...currentForm, metadata: { ...currentForm.metadata, description: e.currentTarget.value } })}
                 className="mt-2 border-none resize-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                 placeholder="Form Description"
               />
@@ -137,10 +166,10 @@ export default function FormBuilder() {
                   ref={provided.innerRef}
                   className="space-y-4"
                 >
-                  {questions.map((question, index) => (
+                  {currentForm.questions.map((question, index) => (
                     <Draggable
-                      key={question.id}
-                      draggableId={question.id}
+                      key={`${question._id}`}
+                      draggableId={`${question._id}`}
                       index={index}
                     >
                       {(provided) => (
@@ -177,7 +206,7 @@ export default function FormBuilder() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => removeQuestion(index)}
-                                  disabled={questions.length === 1}
+                                  disabled={currentForm.questions.length === 1}
                                 >
                                   <Trash2 size={18} />
                                 </Button>
@@ -201,11 +230,7 @@ export default function FormBuilder() {
         </TabsContent>
 
         <TabsContent value="preview" className="mt-4">
-          <FormPreview
-            title={formTitle}
-            description={formDescription}
-            questions={questions}
-          />
+          <FormPreview {...form} />
         </TabsContent>
       </Tabs>
     </div>

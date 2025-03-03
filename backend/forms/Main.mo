@@ -7,7 +7,6 @@ import Array "mo:base/Array";
 import TrieMap "mo:base/TrieMap";
 import Bool "mo:base/Bool";
 import Auth "canister:auth";
-import Option "mo:base/Option";
 import UUID "mo:uuid/UUID";
 import Source "mo:uuid/async/SourceV4";
 
@@ -16,63 +15,67 @@ actor class Forms() {
   type Result<T, E> = Result.Result<T, E>;
   type Response<T> = Result<T, Text>;
 
-  public type Form = {
-    id : Text;
-    title : Text;
-    creatorId : Text;
-    createdAt : Time;
+  // These are metadatas that can be updated
+  // unlike ids and createdAt
+  public type FormMetadata = {
+    // TODO: can't change deadline after publish
     deadline : ?Time;
+    // TODO: can't unpublish a survey
+    published : Bool;
     minAge : ?Nat;
     maxAge : ?Nat;
     country : ?Text;
     city : ?Text;
     occupation : ?Text;
-    questionIds : [Text];
+    title : Text;
+    description : Text;
+    categories : [Text];
   };
 
-  public type Question = {
+  public type Form = {
     id : Text;
-    formId : Text;
-    questionText : Text;
-    questionType : QuestionType;
-    isRequired : Bool;
-    minRange : ?Nat; // for range type question
-    maxRange : ?Nat;
-    optionIds : ?[Text];
+    creator : Principal;
+    createdAt : Time;
+    metadata : FormMetadata;
+    // TODO: add a max-question limit
+    questions : [Question];
   };
 
-  public type QuestionOption = {
+  public type FormPreview = {
     id : Text;
-    questionId : Text;
-    optionText : Text;
+    creator : Principal;
+    createdAt : Time;
+    metadata : FormMetadata;
   };
 
-  let DEFAULT_QUESTION_MIN_RANGE = 1;
-  let DEFAULT_QUESTION_MAX_RANGE = 5;
+  public type MultipleChoiceQuestion = {
+    options : [Text];
+  };
+
+  public type CheckboxQuestion = {
+    options : [Text];
+  };
+
+  public type RangeQuestion = {
+    minRange : Nat;
+    maxRange : Nat;
+  };
 
   public type QuestionType = {
     #Essay;
-    #MultipleChoice;
-    #Checkbox;
-    #Range;
-    #SectionTitle;
+    #MultipleChoice : MultipleChoiceQuestion;
+    #Checkbox : CheckboxQuestion;
+    #Range : RangeQuestion;
   };
 
-  private func questionTypeFromText(text : Text) : ?QuestionType {
-    switch (text) {
-      case ("essay") { ?#Essay };
-      case ("multipleChoice") { ?#MultipleChoice };
-      case ("checkbox") { ?#Checkbox };
-      case ("range") { ?#Range };
-      case ("sectionTitle") { ?#SectionTitle };
-      case (_) { null };
-    };
+  public type Question = {
+    formId : Text;
+    questionTitle : Text;
+    questionType : QuestionType;
+    isRequired : Bool;
   };
 
   let forms = TrieMap.TrieMap<Text, Form>(Text.equal, Text.hash);
-  let questions = TrieMap.TrieMap<Text, Question>(Text.equal, Text.hash);
-  let questionOptions = TrieMap.TrieMap<Text, QuestionOption>(Text.equal, Text.hash);
-  
 
   public shared func createForm(caller : Principal) : async Response<Text> {
     if (Principal.isAnonymous(caller)) {
@@ -86,23 +89,26 @@ actor class Forms() {
     };
 
     // ENDVALIDATION
-
     let newForm : Form = {
       id = UUID.toText(await Source.Source().new());
-      title = "";
-      creatorId = Principal.toText(caller);
       createdAt = Time.now();
-      deadline = null;
-      minAge = null;
-      maxAge = null;
-      country = null;
-      city = null;
-      occupation = null;
-      questionIds = [];
+      creator = caller;
+      metadata = {
+        published = false;
+        title = "Untitled Survey";
+        deadline = null;
+        minAge = null;
+        maxAge = null;
+        country = null;
+        city = null;
+        occupation = null;
+        description = "";
+        categories = [];
+      };
+      questions = [];
     };
 
     forms.put(newForm.id, newForm);
-
     return #ok(newForm.id);
   };
 
@@ -119,12 +125,9 @@ actor class Forms() {
     };
 
     // ENDVALIDATION
-
-    let creatorId = Principal.toText(caller);
-
     var ownedForms : [Form] = [];
     for ((_, form) in forms.entries()) {
-      if (form.creatorId == creatorId) {
+      if (form.creator == caller) {
         ownedForms := Array.append(ownedForms, [form]);
       };
     };
@@ -144,7 +147,7 @@ actor class Forms() {
     };
   };
 
-  public shared func updateFormTitle(caller : Principal, formId : Text, newTitle : Text) : async Response<()> {
+  public shared func updateFormMetadata(caller : Principal, formId : Text, newMetadata : FormMetadata) : async Response<()> {
     if (Principal.isAnonymous(caller)) {
       return #err("Unauthorized");
     };
@@ -152,22 +155,17 @@ actor class Forms() {
     let form : ?Form = forms.get(formId);
     switch (form) {
       case (?f) {
-        if (f.creatorId != Principal.toText(caller)) {
+        if (f.creator != caller) {
           return #err("Unauthorized");
         };
 
+        // TODO: metadata validations according to the TODO above
         let newForm : Form = {
           id = formId;
-          title = newTitle;
-          creatorId = f.creatorId;
+          creator = f.creator;
           createdAt = f.createdAt;
-          deadline = f.deadline;
-          minAge = f.minAge;
-          maxAge = f.maxAge;
-          country = f.country;
-          city = f.city;
-          occupation = f.occupation;
-          questionIds = f.questionIds;
+          metadata = newMetadata;
+          questions = f.questions;
         };
 
         forms.put(formId, newForm);
@@ -178,53 +176,10 @@ actor class Forms() {
     };
   };
 
-  public shared func updateFormSettings(
+  public shared func setFormQuestions(
     caller : Principal,
     formId : Text,
-    minAge : ?Nat,
-    maxAge : ?Nat,
-    country : ?Text,
-    city : ?Text,
-    occupation : ?Text,
-  ) : async Response<()> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-
-    let form : ?Form = forms.get(formId);
-    switch (form) {
-      case (?f) {
-        if (f.creatorId != Principal.toText(caller)) {
-          return #err("Unauthorized");
-        };
-
-        let newForm : Form = {
-          id = formId;
-          title = f.title;
-          creatorId = f.creatorId;
-          createdAt = f.createdAt;
-          deadline = f.deadline;
-          minAge = minAge;
-          maxAge = maxAge;
-          country = country;
-          city = city;
-          occupation = occupation;
-          questionIds = f.questionIds;
-        };
-
-        forms.put(formId, newForm);
-
-        return #ok();
-      };
-      case (_) { return #err("Form not found") };
-    };
-
-  };
-
-  public shared func addQuestionToForm(
-    caller : Principal,
-    formId : Text,
-    questionTypeText : Text,
+    questions : [Question],
   ) : async Response<()> {
     if (Principal.isAnonymous(caller)) {
       return #err("Unauthorized");
@@ -233,403 +188,18 @@ actor class Forms() {
     let formOwnership = validateFormOwnership(formId, caller);
     switch (formOwnership) {
       case (#ok(form)) {
-
-        let questionType = questionTypeFromText(questionTypeText);
-        switch (questionType) {
-          case (?qt) {
-            let newQuestion : Question = {
-              id = UUID.toText(await Source.Source().new());
-              formId = formId;
-              questionText = "";
-              questionType = qt;
-              isRequired = true;
-              minRange = if (qt == #Range) ?DEFAULT_QUESTION_MIN_RANGE else null;
-              maxRange = if (qt == #Range) ?DEFAULT_QUESTION_MAX_RANGE else null;
-              optionIds = if (qt == #MultipleChoice or qt == #Checkbox) ?[] else null;
-            };
-
-            questions.put(newQuestion.id, newQuestion);
-
-            let newForm : Form = {
-              id = form.id;
-              title = form.title;
-              creatorId = form.creatorId;
-              createdAt = form.createdAt;
-              deadline = form.deadline;
-              minAge = form.minAge;
-              maxAge = form.maxAge;
-              country = form.country;
-              city = form.city;
-              occupation = form.occupation;
-              questionIds = Array.append(form.questionIds, [newQuestion.id]);
-            };
-
-            forms.put(form.id, newForm);
-            return #ok();
-          };
-          case (_) { return #err("Invalid question type") };
+        let newForm : Form = {
+          id = form.id;
+          metadata = form.metadata;
+          creator = form.creator;
+          createdAt = form.createdAt;
+          questions = questions;
         };
+
+        forms.put(form.id, newForm);
+        return #ok();
       };
       case (#err(error)) { return #err(error) };
-    };
-  };
-
-  public composite query func getFormQuestions(caller : Principal, formId : Text) : async Response<[Question]> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-    let userResponse = await Auth.getUser(caller);
-    switch (userResponse) {
-      case (#ok(_)) {};
-      case (#err(error)) {
-        return #err(error);
-      };
-    };
-
-    let form : ?Form = forms.get(formId);
-    switch (form) {
-      case (?f) {
-
-        var formQuestions : [Question] = [];
-        for (questionId in f.questionIds.vals()) {
-          switch (questions.get(questionId)) {
-            case (?q) { formQuestions := Array.append(formQuestions, [q]) };
-            case (_) {};
-          };
-        };
-
-        return #ok(formQuestions);
-      };
-      case (_) { return #err("Form not found") };
-    };
-  };
-
-  public shared func updateQuestionText(caller : Principal, questionId : Text, newText : Text) : async Response<()> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-
-    let question : ?Question = questions.get(questionId);
-    switch (question) {
-      case (?q) {
-        let formOwnership = validateFormOwnership(q.formId, caller);
-        switch (formOwnership) {
-          case (#ok(_)) {};
-          case (#err(error)) { return #err(error) };
-        };
-
-        let newQuestion : Question = {
-          id = questionId;
-          formId = q.formId;
-          questionText = newText;
-          questionType = q.questionType;
-          isRequired = q.isRequired;
-          minRange = q.minRange;
-          maxRange = q.maxRange;
-          optionIds = q.optionIds;
-        };
-
-        questions.put(questionId, newQuestion);
-
-        return #ok();
-      };
-      case (_) { return #err("Question not found") };
-    };
-  };
-
-  public shared func updateQuestionType(caller : Principal, questionId : Text, newQuestionTypeText : Text) : async Response<()> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-
-    let question : ?Question = questions.get(questionId);
-    switch (question) {
-      case (?q) {
-        let formOwnership = validateFormOwnership(q.formId, caller);
-        switch (formOwnership) {
-          case (#ok(_)) {};
-          case (#err(error)) { return #err(error) };
-        };
-
-        let newQuestionType : ?QuestionType = questionTypeFromText(newQuestionTypeText);
-        switch (newQuestionType) {
-          case (?qt) {
-            let oldQuestionType = q.questionType;
-            let newQuestion : Question = {
-              id = questionId;
-              formId = q.formId;
-              questionText = q.questionText;
-              questionType = qt;
-              isRequired = q.isRequired;
-              minRange = if (qt == #Range) ?DEFAULT_QUESTION_MIN_RANGE else null;
-              maxRange = if (qt == #Range) ?DEFAULT_QUESTION_MAX_RANGE else null;
-              optionIds = if (qt == #MultipleChoice or qt == #Checkbox) ?[] else null;
-            };
-
-            // clear question options if old type is checkbox/range, and new type is others
-            if (
-              (oldQuestionType == #MultipleChoice or oldQuestionType == #Checkbox) and newQuestion.optionIds == null
-            ) {
-              for ((key, option) in questionOptions.entries()) {
-                if (option.questionId == questionId) {
-                  ignore questionOptions.remove(key);
-                };
-              };
-            };
-
-            questions.put(questionId, newQuestion);
-
-            return #ok();
-          };
-          case (_) { return #err("Invalid question type") };
-        };
-      };
-      case (_) { return #err("Question not found") };
-    };
-
-  };
-
-  public shared func updateQuestionRequirement(caller : Principal, questionId : Text, newRequired : Bool) : async Response<()> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-
-    let question : ?Question = questions.get(questionId);
-    switch (question) {
-      case (?q) {
-        let formOwnership = validateFormOwnership(q.formId, caller);
-        switch (formOwnership) {
-          case (#ok(_)) {};
-          case (#err(error)) { return #err(error) };
-        };
-
-        let newQuestion : Question = {
-          id = questionId;
-          formId = q.formId;
-          questionText = q.questionText;
-          questionType = q.questionType;
-          isRequired = newRequired;
-          minRange = q.minRange;
-          maxRange = q.maxRange;
-          optionIds = q.optionIds;
-        };
-
-        questions.put(questionId, newQuestion);
-
-        return #ok();
-      };
-      case (_) { return #err("Question not found") };
-    };
-  };
-
-  public shared func deleteQuestion(caller : Principal, questionId : Text) : async Response<()> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-
-    let question : ?Question = questions.get(questionId);
-    switch (question) {
-      case (?q) {
-        let formOwnership : Response<Form> = validateFormOwnership(q.formId, caller);
-        switch (formOwnership) {
-          case (#ok(_)) {};
-          case (#err(error)) { return #err(error) };
-        };
-
-        ignore questions.remove(questionId);
-
-        // clear question options if type is checkbox/range
-        if (
-          q.questionType == #MultipleChoice or q.questionType == #Checkbox
-        ) {
-          for ((key, option) in questionOptions.entries()) {
-            if (option.questionId == questionId) {
-              ignore questionOptions.remove(key);
-            };
-          };
-        };
-
-        return #ok();
-      };
-      case (_) { return #err("Question not found") };
-    };
-
-  };
-
-  public shared func addQuestionOption(caller : Principal, questionId : Text) : async Response<()> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-
-    let question : ?Question = questions.get(questionId);
-    switch (question) {
-      case (?q) {
-        let formOwnership = validateFormOwnership(q.formId, caller);
-        switch (formOwnership) {
-          case (#ok(_)) {};
-          case (#err(error)) { return #err(error) };
-        };
-
-        switch (q.questionType) {
-          case (#MultipleChoice) {
-            let newOption : QuestionOption = {
-              id = UUID.toText(await Source.Source().new());
-              questionId = questionId;
-              optionText = "";
-            };
-
-            questionOptions.put(newOption.id, newOption);
-
-            let newQuestion : Question = {
-              id = questionId;
-              formId = q.formId;
-              questionText = q.questionText;
-              questionType = q.questionType;
-              isRequired = q.isRequired;
-              minRange = q.minRange;
-              maxRange = q.maxRange;
-              optionIds = ?Array.append(Option.get<[Text]>(q.optionIds, []), [newOption.id]);
-            };
-
-            questions.put(questionId, newQuestion);
-            #ok();
-          };
-          case (#Checkbox) {
-            let newOption : QuestionOption = {
-              id = UUID.toText(await Source.Source().new());
-              questionId = questionId;
-              optionText = "";
-            };
-
-            questionOptions.put(newOption.id, newOption);
-
-            let newQuestion : Question = {
-              id = questionId;
-              formId = q.formId;
-              questionText = q.questionText;
-              questionType = q.questionType;
-              isRequired = q.isRequired;
-              minRange = q.minRange;
-              maxRange = q.maxRange;
-              optionIds = ?Array.append(Option.get<[Text]>(q.optionIds, []), [newOption.id]);
-            };
-
-            questions.put(questionId, newQuestion);
-            #ok();
-          };
-          case (_) { #err("Invalid question type for this operation") };
-        };
-      };
-      case (_) { return #err("Question not found") };
-    };
-  };
-
-  public composite query func getQuestionOptions(caller : Principal, questionId : Text) : async Response<[QuestionOption]> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-    let userResponse = await Auth.getUser(caller);
-    switch (userResponse) {
-      case (#ok(_)) {};
-      case (#err(error)) {
-        return #err(error);
-      };
-    };
-
-    let question = questions.get(questionId);
-    switch (question) {
-      case (?q) {
-
-        var options : [QuestionOption] = [];
-        var optionIds : ?[Text] = q.optionIds;
-        switch (optionIds) {
-          case (?ids) {
-            for (questionOptionId in ids.vals()) {
-              switch (questionOptions.get(questionOptionId)) {
-                case (?opt) {
-                  options := Array.append(options, [opt]);
-                };
-                case (_) {};
-              };
-            };
-          };
-          case (_) {};
-        };
-        return #ok(options);
-      };
-      case (_) { return #err("Question not found") };
-    };
-  };
-
-  public shared func updateQuestionOption(
-    caller : Principal,
-    questionOptionId : Text,
-    newText : Text,
-  ) : async Response<()> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-
-    let questionOption : ?QuestionOption = questionOptions.get(questionOptionId);
-    switch (questionOption) {
-      case (?qo) {
-
-        let question : ?Question = questions.get(qo.questionId);
-        switch (question) {
-          case (?q) {
-            let formOwnership = validateFormOwnership(q.formId, caller);
-            switch (formOwnership) {
-              case (#ok(_)) {};
-              case (#err(error)) { return #err(error) };
-            };
-
-            let newOption : QuestionOption = {
-              id = questionOptionId;
-              questionId = qo.questionId;
-              optionText = newText;
-            };
-
-            questionOptions.put(questionOptionId, newOption);
-
-            return #ok();
-          };
-          case (_) { return #err("Question not found") };
-        };
-      };
-      case (_) { return #err("Question option not found") };
-    };
-
-  };
-
-  public shared func deleteQuestionOption(caller : Principal, questionOptionId : Text) : async Response<()> {
-    if (Principal.isAnonymous(caller)) {
-      return #err("Unauthorized");
-    };
-
-    let questionOption : ?QuestionOption = questionOptions.get(questionOptionId);
-    switch (questionOption) {
-      case (?qo) {
-
-        let question : ?Question = questions.get(qo.questionId);
-        switch (question) {
-          case (?q) {
-
-            let formOwnership : Response<Form> = validateFormOwnership(q.formId, caller);
-            switch (formOwnership) {
-              case (#ok(_)) {
-                ignore questionOptions.remove(questionOptionId);
-                return #ok();
-              };
-              case (#err(error)) { return #err(error) };
-            };
-
-          };
-          case (null) {
-            return #err("Question not found");
-          };
-        };
-      };
-      case (null) { return #err("Question option not found") };
     };
   };
 
@@ -637,7 +207,7 @@ actor class Forms() {
     let form : ?Form = forms.get(formId);
     switch (form) {
       case (?f) {
-        if (f.creatorId != Principal.toText(caller)) {
+        if (f.creator != caller) {
           return #err("Unauthorized");
         };
 
