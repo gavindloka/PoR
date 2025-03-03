@@ -23,7 +23,8 @@ actor class Backend() {
     await Auth.updateUser(caller, name, age, gender, country, city, occupation);
   };
 
-  // FORMS
+  // Forms
+
   public shared ({ caller }) func createForm() : async Response<Text> {
     await Forms.createForm(caller);
   };
@@ -36,64 +37,11 @@ actor class Backend() {
     await Forms.getForm(caller, formId);
   };
 
-  public shared ({ caller }) func updateFormTitle(formId : Text, newTitle : Text) : async Response<()> {
-    await Forms.updateFormTitle(caller, formId, newTitle);
+  public shared ({ caller }) func updateFormMetadata(formId : Text, newMetadata : Forms.FormMetadata) : async Response<()> {
+    await Forms.updateFormMetadata(caller, formId, newMetadata);
   };
 
-  public shared ({ caller }) func updateFormSettings(
-    formId : Text,
-    minAge : ?Nat,
-    maxAge : ?Nat,
-    country : ?Text,
-    city : ?Text,
-    occupation : ?Text,
-  ) : async Response<()> {
-    await Forms.updateFormSettings(caller, formId, minAge, maxAge, country, city, occupation);
-  };
-
-  public shared ({ caller }) func addQuestionToForm(
-    formId : Text,
-    questionTypeText : Text,
-  ) : async Response<()> {
-    await Forms.addQuestionToForm(caller, formId, questionTypeText);
-  };
-
-  public composite query ({ caller }) func getFormQuestions(formId : Text) : async Response<[Forms.Question]> {
-    await Forms.getFormQuestions(caller, formId);
-  };
-
-  public shared ({ caller }) func updateQuestionText(questionId : Text, newText : Text) : async Response<()> {
-    await Forms.updateQuestionText(caller, questionId, newText);
-  };
-
-  public shared ({ caller }) func updateQuestionType(questionId : Text, newQuestionTypeText : Text) : async Response<()> {
-    await Forms.updateQuestionType(caller, questionId, newQuestionTypeText);
-  };
-
-  public shared ({ caller }) func updateQuestionRequirement(questionId : Text, newRequired : Bool) : async Response<()> {
-    await Forms.updateQuestionRequirement(caller, questionId, newRequired);
-  };
-
-  public shared ({ caller }) func deleteQuestion(questionId : Text) : async Response<()> {
-    await Forms.deleteQuestion(caller, questionId);
-  };
-
-  public shared ({ caller }) func addQuestionOption(questionId : Text) : async Response<()> {
-    await Forms.addQuestionOption(caller, questionId);
-  };
-
-  public composite query ({ caller }) func getQuestionOptions(questionId : Text) : async Response<[Forms.QuestionOption]> {
-    await Forms.getQuestionOptions(caller, questionId);
-  };
-
-  public shared ({ caller }) func updateQuestionOption(
-    questionOptionId : Text,
-    newText : Text,
-  ) : async Response<()> {
-    await Forms.updateQuestionOption(caller, questionOptionId, newText);
-  };
-
-  public shared ({ caller }) func deleteQuestionOption(questionOptionId : Text) : async Response<()> {
-    await Forms.deleteQuestionOption(caller, questionOptionId);
+  public shared ({ caller }) func setFormQuestions(formId : Text, questions : [Forms.Question]) : async Response<()> {
+    await Forms.setFormQuestions(caller, formId, questions);
   };
 };

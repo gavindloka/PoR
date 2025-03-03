@@ -3,12 +3,11 @@ import App from '@/App';
 import { createBrowserRouter, Navigate } from 'react-router';
 import RegisterPage from '@/pages/RegisterPage';
 import HomePage from '@/pages/HomePage';
-import FormEditor from '@/pages/FormEditor';
 import AnswerForm from '@/pages/AnswerForm';
 import TestPage from '@/pages/TestPage';
 import GetVerifiedPage from '@/pages/GetVerifiedPage';
 import ProfilePage from '@/pages/ProfilePage';
-import { AddSurvey } from '@/pages/AddSurvey';
+import { Survey } from '@/pages/Survey';
 import FormManagement from '@/pages/MyForm';
 import BrowseSurveys from '@/pages/BrowsePage';
 import { WrapTest } from '@/components/WrapTest';
@@ -27,8 +26,8 @@ export const router = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
-        path: '/forms/new',
-        element: <AddSurvey />,
+        path: '/forms/:id',
+        element: <Survey />,
       },
       {
         path: '/forms',

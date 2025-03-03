@@ -22,29 +22,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Question } from './FormBuilder';
-import { ChevronDown } from 'lucide-react';
-
-interface FormPreviewProps {
-  title: string;
-  description: string;
-  questions: Question[];
-}
+import { Form } from '@/declarations/backend/backend.did';
+import { LocalForm } from './FormBuilder';
 
 export default function FormPreview({
-  title,
-  description,
+  metadata,
   questions,
-}: FormPreviewProps) {
+}: LocalForm) {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submitted, setSubmitted] = useState(false);
 
-  const handleInputChange = (questionId: string, value: any) => {
+  const handleInputChange = (index: number, value: any) => {
     setFormData({
       ...formData,
-      [questionId]: value,
+      [index]: value,
     });
-    console.log('Updated formData:', formData);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -79,82 +71,72 @@ export default function FormPreview({
     <form onSubmit={handleSubmit}>
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-2xl">{title}</CardTitle>
-          {description && <CardDescription>{description}</CardDescription>}
+          <CardTitle className="text-2xl">{metadata.title}</CardTitle>
+          {metadata.description && <CardDescription>{metadata.description}</CardDescription>}
         </CardHeader>
       </Card>
 
-      {questions.map((question) => (
-        <Card key={question.id} className="mb-4">
+      {questions.map((question, index) => (
+        <Card key={`${question.questionTitle}-${index}`} className="mb-4">
           <CardContent className="pt-6">
             <div className="mb-4">
               <Label className="text-base font-medium">
-                {question.title}
-                {question.required && (
+                {question.questionTitle}
+                {question.isRequired && (
                   <span className="text-destructive ml-1">*</span>
                 )}
               </Label>
             </div>
 
-            {question.type === 'short-answer' && (
-              <Input
-                placeholder="Your answer"
-                className="max-w-md"
-                value={formData[question.id] || ''}
-                onChange={(e) => handleInputChange(question.id, e.target.value)}
-                required={question.required}
-              />
-            )}
-
-            {question.type === 'paragraph' && (
+            {"Essay" in question.questionType && (
               <Textarea
                 placeholder="Your answer"
                 className="max-w-md"
-                value={formData[question.id] || ''}
-                onChange={(e) => handleInputChange(question.id, e.target.value)}
-                required={question.required}
+                value={formData[index] || ''}
+                onChange={(e) => handleInputChange(index, e.target.value)}
+                required={question.isRequired}
               />
             )}
 
-            {question.type === 'multiple-choice' && question.options && (
+            {"MultipleChoice" in question.questionType && (
               <RadioGroup
-                value={formData[question.id] || ''}
-                onValueChange={(value) => handleInputChange(question.id, value)}
-                required={question.required}
+                value={formData[index] || ''}
+                onValueChange={(value) => handleInputChange(index, value)}
+                required={question.isRequired}
                 className="space-y-2"
               >
-                {question.options.map((option) => (
-                  <div key={option.id} className="flex items-center space-x-2">
+                {question.questionType.MultipleChoice.options.map((option, idx) => (
+                  <div key={idx} className="flex items-center space-x-2">
                     <RadioGroupItem
-                      value={option.id}
-                      id={`${question.id}-${option.id}`}
+                      value={`${idx}`}
+                      id={`${index}-${idx}`}
                       className="w-5 h-5 border border-gray-300 rounded-full bg-white flex items-center justify-center data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
                     >
                       <div className="w-2.5 h-2.5 bg-white rounded-full hidden data-[state=checked]:block" />
                     </RadioGroupItem>
-                    <Label htmlFor={`${question.id}-${option.id}`}>
-                      {option.value}
+                    <Label htmlFor={`${index}-${idx}`}>
+                      {option}
                     </Label>
                   </div>
                 ))}
               </RadioGroup>
             )}
 
-            {question.type === 'checkboxes' && question.options && (
+            {"Checkbox" in question.questionType && (
               <div className="space-y-2">
-                {question.options.map((option) => (
-                  <div key={option.id} className="flex items-center space-x-2">
+                {question.questionType.Checkbox.options.map((option, idx) => (
+                  <div key={idx} className="flex items-center space-x-2">
                     <Checkbox
-                      id={`${question.id}-${option.id}`}
-                      checked={formData[question.id]?.includes(option.id)}
+                      id={`${index}-${idx}`}
+                      checked={formData[index]?.includes(idx)}
                       onCheckedChange={(checked) => {
-                        const currentValues = formData[question.id] || [];
+                        const currentValues = formData[index] || [];
                         const newValues = checked
-                          ? [...currentValues, option.id]
+                          ? [...currentValues, idx]
                           : currentValues.filter(
-                            (id: string) => id !== option.id,
+                            (id: string) => parseInt(id) !== idx,
                           );
-                        handleInputChange(question.id, newValues);
+                        handleInputChange(index, newValues);
                       }}
                       className="w-5 h-5 border border-gray-300 rounded-md bg-white data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 flex items-center justify-center"
                     >
@@ -170,45 +152,14 @@ export default function FormPreview({
                         />
                       </svg>
                     </Checkbox>
-                    <Label htmlFor={`${question.id}-${option.id}`}>
-                      {option.value}
+                    <Label htmlFor={`${index}-${idx}`}>
+                      {option}
                     </Label>
                   </div>
                 ))}
               </div>
             )}
 
-            {question.type === 'dropdown' && question.options && (
-              <Select
-                value={formData[question.id] || ''}
-                onValueChange={(value) => {
-                  console.log(`Selected value for ${question.id}:`, value); // Debugging log
-                  handleInputChange(question.id, value);
-                }}
-                required={question.required}
-              >
-                {/* Select Button (Trigger) with the Selected Value */}
-                <SelectTrigger
-                  className="w-full max-w-md flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm transition hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  aria-hidden={false}
-                >
-                  <SelectValue placeholder="Choose an option" />
-                </SelectTrigger>
-
-                {/* Dropdown Menu */}
-                <SelectContent className="w-full max-w-md mt-2 bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden animate-fadeIn">
-                  {question.options.map((option) => (
-                    <SelectItem
-                      key={option.id}
-                      value={option.id}
-                      className="px-4 py-2 text-gray-700 transition cursor-pointer hover:bg-purple-100 hover:text-purple-700 focus:bg-purple-100 focus:text-purple-700"
-                    >
-                      {option.value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </CardContent>
         </Card>
       ))}

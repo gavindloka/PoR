@@ -7,6 +7,7 @@ import Result "mo:base/Result";
 import Debug "mo:base/Debug";
 import Float "mo:base/Float";
 import Ledger "canister:icp_ledger_canister_backend";
+import Bool "mo:base/Bool";
 
 actor Auth {
   type Result<T, E> = Result.Result<T, E>;
@@ -23,6 +24,7 @@ actor Auth {
   };
 
   let users = TrieMap.TrieMap<Principal, User>(Principal.equal, Principal.hash);
+  var debugMode = false;
 
   type Addition = {
     #Ok;
@@ -51,8 +53,26 @@ actor Auth {
     };
   };
 
+  public shared func setDebug(isDebug : Bool) : async Response<()> {
+    debugMode := isDebug;
+    #ok();
+  };
+
   public query func getUser(id : Principal) : async Response<User> {
     let user : ?User = users.get(id);
+    if (debugMode) {
+      let newUser = {
+        id = id;
+        name = null;
+        age = null;
+        gender = null;
+        country = null;
+        city = null;
+        occupation = null;
+      };
+      users.put(id, newUser);
+      return #ok(newUser);
+    };
     switch (user) {
       case (null) { #err("Account not verified!") };
       case (?user) { #ok(user) };
