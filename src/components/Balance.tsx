@@ -20,10 +20,9 @@ export const Balance = () => {
     args: [{ owner: principal, subaccount: [] }],
   });
   const balance = data
-    ? JSON.stringify(data, (_, v) =>
-        typeof v === 'bigint' ? (Number(v) / 100_000_000).toFixed(3) : v,
-      )
-    : '0';
+  ? (typeof data === 'bigint' ? (Number(data) / 100_000_000).toFixed(2) : data)
+  : '0';
+
 
   useEffect(() => {
     call();

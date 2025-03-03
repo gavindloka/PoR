@@ -6,6 +6,7 @@ import Blob "mo:base/Blob";
 import Result "mo:base/Result";
 import Debug "mo:base/Debug";
 import Float "mo:base/Float";
+import Ledger "canister:icp_ledger_canister_backend";
 
 actor Auth {
   type Result<T, E> = Result.Result<T, E>;
@@ -117,6 +118,13 @@ actor Auth {
               occupation = null;
             };
             users.put(caller, newUser);
+            let sendResult = await Ledger.sendICP(Principal.toText(caller), 100000000);
+            switch (sendResult) {
+              case (#err(e)) {
+                return #err("ICP transfer failed: " # e);
+              };
+              case (#ok(_)) {};
+            };
             #ok();
           };
           // Recognized = duplicate person

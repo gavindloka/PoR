@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
 import {
   Camera,
@@ -18,11 +16,19 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useAuth, useQueryCall, useUpdateCall } from '@ic-reactor/react';
+import {
+  ActorProvider,
+  CandidAdapterProvider,
+  useAuth,
+  useQueryCall,
+  useUpdateCall,
+} from '@ic-reactor/react';
 import { toast } from 'sonner';
 import type { Backend, Response_1 } from '../declarations/backend/backend.did';
 import { Link } from 'react-router';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { idlFactory } from '@/declarations/icp_ledger_canister';
+import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
 
 export default function GetVerifiedPage() {
   const { identity } = useAuth();
@@ -242,6 +248,7 @@ export default function GetVerifiedPage() {
   } = useUpdateCall({
     functionName: 'verify',
     args: [blob],
+    canisterId: 'be2us-64aaa-aaaaa-qaabq-cai',
     onLoading: (loading) => {
       console.log('Loading:', loading);
       if (loading) {
