@@ -6,6 +6,9 @@ import Principal "mo:base/Principal";
 import Array "mo:base/Array";
 import TrieMap "mo:base/TrieMap";
 import Bool "mo:base/Bool";
+import Int64 "mo:base/Int64";
+import Iter "mo:base/Iter";
+import Option "mo:base/Option";
 import Auth "canister:auth";
 import UUID "mo:uuid/UUID";
 import Source "mo:uuid/async/SourceV4";
@@ -18,9 +21,7 @@ actor class Forms() {
   // These are metadatas that can be updated
   // unlike ids and createdAt
   public type FormMetadata = {
-    // TODO: can't change deadline after publish
     deadline : ?Time;
-    // TODO: can't unpublish a survey
     published : Bool;
     minAge : ?Nat;
     maxAge : ?Nat;
@@ -37,8 +38,8 @@ actor class Forms() {
     creator : Principal;
     createdAt : Time;
     metadata : FormMetadata;
-    // TODO: add a max-question limit
     questions : [Question];
+    responses : [FormResponse];
   };
 
   public type FormPreview = {
@@ -75,6 +76,20 @@ actor class Forms() {
     isRequired : Bool;
   };
 
+  public type AnswerType = {
+    #Essay : ?Text;
+    #MultipleChoice : ?Nat;
+    #Checkbox : [Nat];
+    #Range : ?Int64;
+  };
+
+  public type FormResponse = {
+    formId : Text;
+    answerer : Principal;
+    answers : [AnswerType];
+    submitTime : Time;
+  };
+
   let forms = TrieMap.TrieMap<Text, Form>(Text.equal, Text.hash);
 
   public shared func createForm(caller : Principal) : async Response<Text> {
@@ -106,6 +121,7 @@ actor class Forms() {
         categories = [];
       };
       questions = [];
+      responses = [];
     };
 
     forms.put(newForm.id, newForm);
@@ -159,13 +175,24 @@ actor class Forms() {
           return #err("Unauthorized");
         };
 
-        // TODO: metadata validations according to the TODO above
         let newForm : Form = {
           id = formId;
           creator = f.creator;
           createdAt = f.createdAt;
           metadata = newMetadata;
           questions = f.questions;
+          responses = f.responses;
+        };
+
+        // TODO: metadata validations
+        if (f.metadata.published and not newMetadata.published) {
+          return #err("Form can't be unpublished");
+        };
+        if (f.metadata.published and f.metadata.deadline != newMetadata.deadline) {
+          return #err("Form deadline can't be changed after deadline");
+        };
+        if (newMetadata.published and Option.isNull(f.metadata.deadline)) {
+          return #err("Form deadline must be defined before publish");
         };
 
         forms.put(formId, newForm);
@@ -194,12 +221,102 @@ actor class Forms() {
           creator = form.creator;
           createdAt = form.createdAt;
           questions = questions;
+          responses = form.responses;
         };
 
         forms.put(form.id, newForm);
         return #ok();
       };
       case (#err(error)) { return #err(error) };
+    };
+  };
+
+  public shared func addFormResponse(
+    caller : Principal,
+    formId : Text,
+    answers : [AnswerType],
+  ) : async Response<()> {
+    // kalau questionnya g required n ga dijawab, masukin null aja di answernya
+    if (Principal.isAnonymous(caller)) {
+      return #err("Unauthorized");
+    };
+
+    let form = forms.get(formId);
+    switch (form) {
+      case (?f) {
+        if (not f.metadata.published) {
+          return #err("Form is not yet published");
+        };
+
+        // jawabanny gabole diatas deadline
+        let submitTime : Time = Time.now();
+        let deadline : ?Time = f.metadata.deadline;
+        switch (deadline) {
+          case (?d) {
+            if (submitTime > d) {
+              return #err("Form is already closed");
+            };
+          };
+          case (null) {};
+        };
+
+        // questions.length harus sama dg answers.length
+        if (f.questions.size() != answers.size()) {
+          return #err("Invalid response format: question and answer count are different");
+        };
+
+        // answerType === questionType
+        // if required, answer might not be null
+        for (i in Iter.range(0, answers.size() - 1)) {
+          let question = f.questions[i];
+          let answer = answers[i];
+
+          switch (question.questionType, answer) {
+            case (#Essay, #Essay(?_)) {};
+            case (#MultipleChoice(_), #MultipleChoice(?_)) {};
+            case (#Checkbox(_), #Checkbox(_)) {};
+            case (#Range(_), #Range(?_)) {};
+            case _ {
+              return #err("Invalid answer type for question " # debug_show (i));
+            };
+          };
+
+          if (question.isRequired) {
+            switch (answer) {
+              case (#Essay(null)) {
+                return #err("Question " # debug_show (i) # " is required");
+              };
+              case (#MultipleChoice(null)) {
+                return #err("Question " # debug_show (i) # " is required");
+              };
+              case (#Range(null)) {
+                return #err("Question " # debug_show (i) # " is required");
+              };
+              case _ {};
+            };
+          };
+        };
+
+        let newForm : Form = {
+          id = f.id;
+          metadata = f.metadata;
+          creator = f.creator;
+          createdAt = f.createdAt;
+          questions = f.questions;
+          responses = Array.append(f.responses, [{
+            formId = formId;
+            answerer = caller;
+            answers = answers;
+            submitTime = submitTime
+          }]);
+        };
+        forms.put(formId, newForm);
+
+        return #ok();
+      };
+      case (null) {
+        return #err("Form not found");
+      };
     };
   };
 
