@@ -18,17 +18,25 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Link, useNavigate } from 'react-router';
 import { useQueryCall, useUpdateCall } from '@ic-reactor/react';
-import { Backend, Response_2, Response_4 } from '@/declarations/backend/backend.did';
+import {
+  Backend,
+  Response_2,
+  Response_4,
+} from '@/declarations/backend/backend.did';
 import { toast } from 'sonner';
 import { useCustomAuth } from '@/context/AuthContext';
 
 export default function FormManagement() {
   const { loading: authLoading } = useCustomAuth();
-  const { data, error, loading: formLoading } = useQueryCall<Backend>({
-    functionName: 'getOwnedForms'
+  const {
+    data,
+    error,
+    loading: formLoading,
+  } = useQueryCall<Backend>({
+    functionName: 'getOwnedForms',
   });
   const { call } = useUpdateCall<Backend>({
-    functionName: 'createForm'
+    functionName: 'createForm',
   });
   const forms = data as Response_2 | undefined | null;
   const navigate = useNavigate();
@@ -37,16 +45,17 @@ export default function FormManagement() {
     call()
       .then((response) => {
         const res = response as Response_4;
-        if ("ok" in res) {
+        if ('ok' in res) {
           navigate(`/forms/${res.ok}`);
         } else {
           toast.error(res.err);
         }
       })
       .catch((error) => {
-        toast.error(error);
-      })
-  }
+        // toast.error(error);
+        console.error(error);
+      });
+  };
 
   return (
     <div className="container mx-auto py-10 px-20">
@@ -61,7 +70,10 @@ export default function FormManagement() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {/* Create New Form Card */}
-        <Card onClick={handleNewForm} className="border-dashed h-full flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
+        <Card
+          onClick={handleNewForm}
+          className="border-dashed h-full flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+        >
           <CardContent className="flex flex-col items-center justify-center pt-6 pb-6 h-full">
             <div className="rounded-full bg-primary/10 p-6 mb-4">
               <Plus className="h-8 w-8 text-primary" />
@@ -74,13 +86,16 @@ export default function FormManagement() {
         </Card>
 
         {/* Existing Forms */}
-        {forms && "ok" in forms && (
+        {forms &&
+          'ok' in forms &&
           forms.ok.map((form) => (
             <Card key={form.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-xl">{form.metadata.title}</CardTitle>
+                    <CardTitle className="text-xl">
+                      {form.metadata.title}
+                    </CardTitle>
                     <CardDescription className="mt-1 line-clamp-2">
                       {form.metadata.description}
                     </CardDescription>
@@ -124,8 +139,7 @@ export default function FormManagement() {
                 </Button>
               </CardFooter>
             </Card>
-          ))
-        )}
+          ))}
       </div>
     </div>
   );

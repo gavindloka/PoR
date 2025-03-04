@@ -1,4 +1,4 @@
-import type React from 'react';
+import React from 'react';
 
 import { useEffect, useState } from 'react';
 import {
@@ -9,12 +9,25 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
 import { Checkbox } from '@radix-ui/react-checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CalendarIcon } from 'lucide-react';
+import {
+  Form as MainForm,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
@@ -24,14 +37,41 @@ import {
 } from '@/components/ui/select';
 import { Form } from '@/declarations/backend/backend.did';
 import { LocalForm } from './FormBuilder';
-
+import { Slider } from './ui/slider';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Principal as DFinityPrincipal } from '@dfinity/principal';
+import { User } from 'lucide-react';
+import { Separator } from './ui/separator';
+import { CountryDropdown } from './ui/country-dropdown';
+import { OccupationDropdown } from './ui/occupation-dropdown';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { cn } from '@/lib/utils';
+import { Calendar } from './ui/calendar';
+import { format } from 'date-fns';
+import { useQueryCall, useUserPrincipal } from '@ic-reactor/react';
+import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
+export type ICPLedger = typeof icp_ledger_canister;
 export default function FormPreview({
-  metadata,
-  questions,
-}: LocalForm) {
+  currentForm,
+  setCurrentForm,
+}: {
+  currentForm: LocalForm;
+  setCurrentForm: (form: LocalForm) => void;
+}) {
+  const questions = currentForm.questions;
+  const metadata = currentForm.metadata;
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submitted, setSubmitted] = useState(false);
-
+  const [date, setDate] = React.useState<Date>();
+  const [open, setOpen] = useState(false);
   const handleInputChange = (index: number, value: any) => {
     setFormData({
       ...formData,
@@ -39,15 +79,78 @@ export default function FormPreview({
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePublish = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form data:', formData);
-    setSubmitted(true);
+    setOpen(true);
+  };
+  function hashMemo(str: String) {
+    let hash = 0n;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash * 31n + BigInt(str.charCodeAt(i))) % 2n ** 64n; // Keep within 64-bit
+    }
+    return new Uint8Array(new BigUint64Array([hash]).buffer);
+  }
+  const principal = useUserPrincipal() as DFinityPrincipal;
+  const { call, data, error } = useQueryCall<ICPLedger, 'icrc2_transfer_from'>({
+    functionName: 'icrc2_transfer_from',
+    canisterId: 'ryjl3-tyaaa-aaaaa-aaaba-cai',
+    args: [
+      {
+        from: {
+          owner: principal,
+          subaccount: [],
+        },
+        to: {
+          owner: DFinityPrincipal.fromText('be2us-64aaa-aaaaa-qaabq-cai'),
+          subaccount: [],
+        },
+        amount: BigInt(10000),
+        fee: [],
+        spender_subaccount: [],
+        memo: [hashMemo(currentForm.id)],
+        created_at_time: [],
+      },
+    ],
+  });
+
+  const handleSendICP = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Sending ICPPP', data);
+    console.log('MEMOOOO', new TextEncoder().encode(currentForm.id));
+    call();
   };
 
   useEffect(() => {
     console.log('Questions updated:', questions);
   }, [questions]);
+
+  const formSchema = z.object({
+    name: z
+      .string()
+      .min(2, { message: 'Name must be at least 2 characters long' }),
+    age: z
+      .string()
+      .min(1, { message: 'Age is required' })
+      .refine((val) => !isNaN(Number.parseInt(val)), {
+        message: 'Age must be a number',
+      }),
+    gender: z.string().min(1, { message: 'Gender is required' }),
+    city: z.string().min(2, { message: 'City must be at least 2 characters' }),
+    country: z.string().min(1, { message: 'Country is required' }),
+    occupation: z.string().min(1, { message: 'Occupation is required' }),
+  });
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      age: '',
+      gender: '',
+      city: '',
+      country: '',
+      occupation: '',
+    },
+  });
 
   if (submitted) {
     return (
@@ -68,11 +171,13 @@ export default function FormPreview({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <>
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-2xl">{metadata.title}</CardTitle>
-          {metadata.description && <CardDescription>{metadata.description}</CardDescription>}
+          {metadata.description && (
+            <CardDescription>{metadata.description}</CardDescription>
+          )}
         </CardHeader>
       </Card>
 
@@ -88,41 +193,61 @@ export default function FormPreview({
               </Label>
             </div>
 
-            {"Essay" in question.questionType && (
+            {'Essay' in question.questionType && (
               <Textarea
                 placeholder="Your answer"
-                className="max-w-md"
+                className="w-full"
                 value={formData[index] || ''}
                 onChange={(e) => handleInputChange(index, e.target.value)}
                 required={question.isRequired}
               />
             )}
+            {'Range' in question.questionType && (
+              <div className="flex flex-col space-y-2">
+                <Slider
+                  value={[
+                    formData[index] ??
+                      Number(question.questionType.Range.minRange),
+                  ]}
+                  min={Number(question.questionType.Range.minRange)}
+                  max={Number(question.questionType.Range.maxRange)}
+                  step={1}
+                  onValueChange={(value) => handleInputChange(index, value[0])}
+                  className="w-full"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  Selected Value:{' '}
+                  {formData[index] ??
+                    Number(question.questionType.Range.minRange)}
+                </span>
+              </div>
+            )}
 
-            {"MultipleChoice" in question.questionType && (
+            {'MultipleChoice' in question.questionType && (
               <RadioGroup
                 value={formData[index] || ''}
                 onValueChange={(value) => handleInputChange(index, value)}
                 required={question.isRequired}
                 className="space-y-2"
               >
-                {question.questionType.MultipleChoice.options.map((option, idx) => (
-                  <div key={idx} className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value={`${idx}`}
-                      id={`${index}-${idx}`}
-                      className="w-5 h-5 border border-gray-300 rounded-full bg-white flex items-center justify-center data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
-                    >
-                      <div className="w-2.5 h-2.5 bg-white rounded-full hidden data-[state=checked]:block" />
-                    </RadioGroupItem>
-                    <Label htmlFor={`${index}-${idx}`}>
-                      {option}
-                    </Label>
-                  </div>
-                ))}
+                {question.questionType.MultipleChoice.options.map(
+                  (option, idx) => (
+                    <div key={idx} className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value={`${idx}`}
+                        id={`${index}-${idx}`}
+                        className="w-5 h-5 border border-gray-300 rounded-full bg-white flex items-center justify-center data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500"
+                      >
+                        <div className="w-2.5 h-2.5 bg-white rounded-full hidden data-[state=checked]:block" />
+                      </RadioGroupItem>
+                      <Label htmlFor={`${index}-${idx}`}>{option}</Label>
+                    </div>
+                  ),
+                )}
               </RadioGroup>
             )}
 
-            {"Checkbox" in question.questionType && (
+            {'Checkbox' in question.questionType && (
               <div className="space-y-2">
                 {question.questionType.Checkbox.options.map((option, idx) => (
                   <div key={idx} className="flex items-center space-x-2">
@@ -134,8 +259,8 @@ export default function FormPreview({
                         const newValues = checked
                           ? [...currentValues, idx]
                           : currentValues.filter(
-                            (id: string) => parseInt(id) !== idx,
-                          );
+                              (id: string) => parseInt(id) !== idx,
+                            );
                         handleInputChange(index, newValues);
                       }}
                       className="w-5 h-5 border border-gray-300 rounded-md bg-white data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 flex items-center justify-center"
@@ -152,26 +277,352 @@ export default function FormPreview({
                         />
                       </svg>
                     </Checkbox>
-                    <Label htmlFor={`${index}-${idx}`}>
-                      {option}
-                    </Label>
+                    <Label htmlFor={`${index}-${idx}`}>{option}</Label>
                   </div>
                 ))}
               </div>
             )}
-
           </CardContent>
         </Card>
       ))}
 
       <div className="flex justify-between">
-        <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
-          Submit
+        <Button
+          onClick={handlePublish}
+          className="bg-purple-600 hover:bg-purple-700"
+        >
+          Publish
         </Button>
         <Button type="button" variant="outline" onClick={() => setFormData({})}>
           Clear form
         </Button>
       </div>
-    </form>
+
+      {/* Modal */}
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden">
+          <Tabs defaultValue="requirements" className="w-full">
+            <DialogHeader className="px-6 pt-6 pb-2">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-2xl font-bold">
+                  Form Details
+                </DialogTitle>
+              </div>
+              <DialogDescription className="text-muted-foreground mt-1">
+                Configure your form requirements and set up rewards for
+                respondents.
+              </DialogDescription>
+              <TabsList className="p-5 ">
+                <TabsTrigger value="requirements">Requirements</TabsTrigger>
+                <TabsTrigger value="rewards">Rewards</TabsTrigger>
+              </TabsList>
+              <Separator className="mt-4" />
+            </DialogHeader>
+
+            <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
+              <TabsContent value="requirements" className="mt-0 space-y-6">
+                <MainForm {...form}>
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-2">
+                        <FormControl>
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-lg">
+                                Time Settings
+                              </CardTitle>
+                              <CardDescription>
+                                Set the deadline for form submissions
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="grid gap-4">
+                                <div className="grid gap-2">
+                                  <Label htmlFor="deadline">
+                                    Deadline{' '}
+                                    <span className="text-red-500">*</span>
+                                  </Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant={'outline'}
+                                        className={cn(
+                                          'w-[340px] justify-start text-left font-normal',
+                                          !date && 'text-muted-foreground',
+                                        )}
+                                      >
+                                        <CalendarIcon />
+                                        {currentForm.metadata.deadline[0] ? (
+                                          format(
+                                            new Date(
+                                              Number(
+                                                currentForm.metadata
+                                                  .deadline[0],
+                                              ) / 1000,
+                                            ),
+                                            'PPP',
+                                          )
+                                        ) : (
+                                          <span>Pick a date</span>
+                                        )}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                      className="w-auto p-0"
+                                      align="start"
+                                    >
+                                      <Calendar
+                                        mode="single"
+                                        selected={
+                                          currentForm.metadata.deadline[0]
+                                            ? new Date(
+                                                Number(
+                                                  currentForm.metadata
+                                                    .deadline[0],
+                                                ) / 1000,
+                                              )
+                                            : undefined
+                                        }
+                                        onSelect={(date) => {
+                                          if (date) {
+                                            const input =
+                                              date?.getTime() * 1000;
+                                            currentForm.metadata.deadline = [
+                                              BigInt(input),
+                                            ];
+                                          } else {
+                                            currentForm.metadata.deadline = [];
+                                          }
+                                          setCurrentForm({ ...currentForm });
+                                        }}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="age"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-2">
+                        <FormControl>
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-lg">
+                                Age Requirements
+                              </CardTitle>
+                              <CardDescription>
+                                Define age range for respondents
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="grid gap-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="min-age">
+                                      Minimum Age [Optional]
+                                    </Label>
+                                    <Input
+                                      id="min-age"
+                                      placeholder="ex. At least 20 y.o "
+                                      className="mt-1"
+                                      type="number"
+                                      value={currentForm.metadata.minAge[0]?.toString()}
+                                      onChange={(e) => {
+                                        const input = BigInt(e.target.value);
+                                        currentForm.metadata.minAge = [input];
+                                        setCurrentForm({ ...currentForm });
+                                      }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="max-age">
+                                      Maximum Age [Optional]
+                                    </Label>
+                                    <Input
+                                      id="max-age"
+                                      placeholder="ex. Maximum 40 y.o "
+                                      className="mt-1"
+                                      type="number"
+                                      value={currentForm.metadata.maxAge[0]?.toString()}
+                                      onChange={(e) => {
+                                        const input = BigInt(e.target.value);
+                                        currentForm.metadata.maxAge = [input];
+                                        setCurrentForm({ ...currentForm });
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="age"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-2">
+                        <FormControl>
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-lg">
+                                Location & Occupation
+                              </CardTitle>
+                              <CardDescription>
+                                Set location and occupation requirements
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="grid gap-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label
+                                      htmlFor="country"
+                                      className="block mb-1"
+                                    >
+                                      Country [Optional]
+                                    </Label>
+                                    <FormControl>
+                                      <CountryDropdown
+                                        placeholder="Select your country"
+                                        value={currentForm.metadata.country[0]?.toString()}
+                                        onChange={(country) => {
+                                          const input = country.alpha3;
+                                          currentForm.metadata.country = [
+                                            input,
+                                          ];
+                                          setCurrentForm({ ...currentForm });
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </div>
+                                  <div>
+                                    <Label
+                                      htmlFor="city"
+                                      className="block mb-1"
+                                    >
+                                      City [Optional]
+                                    </Label>
+                                    <Input
+                                      id="city"
+                                      placeholder="Enter city"
+                                      value={currentForm.metadata.city[0]?.toString()}
+                                      onChange={(e) => {
+                                        const input = e.target.value;
+                                        currentForm.metadata.city = [input];
+                                        setCurrentForm({ ...currentForm });
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <Label
+                                    htmlFor="occupation"
+                                    className="block mb-1"
+                                  >
+                                    Occupation [Optional]
+                                  </Label>
+                                  <FormControl>
+                                    <OccupationDropdown
+                                      value={currentForm.metadata.occupation[0]?.toString()}
+                                      onChange={(occupation) => {
+                                        const input = occupation.id;
+                                        currentForm.metadata.occupation = [
+                                          input,
+                                        ];
+                                        setCurrentForm({ ...currentForm });
+                                      }}
+                                    />
+                                  </FormControl>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </MainForm>
+              </TabsContent>
+
+              <TabsContent value="rewards" className="mt-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Reward Settings</CardTitle>
+                    <CardDescription>
+                      Configure ICP rewards for respondents
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4">
+                      <div>
+                        <Label htmlFor="reward-amount">
+                          Reward Amount (ICP)
+                        </Label>
+                        <Input
+                          id="reward-amount"
+                          type="number"
+                          placeholder="0.01"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="reward-pool">
+                          Total Reward Pool (ICP)
+                        </Label>
+                        <Input
+                          id="reward-pool"
+                          type="number"
+                          placeholder="10.00"
+                          value={currentForm.questions.length * 0.1}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="max-respondents">
+                          Maximum Respondents
+                        </Label>
+                        <Input
+                          id="max-respondents"
+                          type="number"
+                          placeholder="1000"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </div>
+
+            <DialogFooter className="px-6 py-4 border-t">
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSendICP}>Publish Form</Button>{' '}
+            </DialogFooter>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

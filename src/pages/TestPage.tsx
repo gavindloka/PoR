@@ -202,6 +202,10 @@ const TestPage = () => {
   const [respondent, setRespondent] = useState(0);
   const principal = useUserPrincipal() as DFinityPrincipal;
 
+  const text = 'Hello, world!';
+  const encoder = new TextEncoder();
+  const byteArray = encoder.encode(text);
+
   const { call, data, error } = useQueryCall<ICPLedger, 'icrc2_transfer_from'>({
     functionName: 'icrc2_transfer_from',
     canisterId: 'ryjl3-tyaaa-aaaaa-aaaba-cai',
@@ -218,11 +222,13 @@ const TestPage = () => {
         amount: BigInt(5000),
         fee: [], // Use `undefined` for optional fields
         spender_subaccount: [],
-        memo: [],
+        memo: [byteArray],
         created_at_time: [],
       },
     ],
   });
+
+  console.log(identity?.getPrincipal().toText());
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

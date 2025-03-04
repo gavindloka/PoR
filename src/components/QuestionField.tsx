@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Question } from '@/declarations/backend/backend.did';
 import { WithId } from './FormBuilder';
+import { Slider } from './ui/slider';
 
 interface QuestionFieldProps {
   question: WithId<Question>;
@@ -26,35 +27,28 @@ export default function QuestionField({
   const handleTypeChange = (questionTypeName: string) => {
     const updatedQuestion = { ...question };
 
-    if (questionTypeName === "MultipleChoice") {
+    if (questionTypeName === 'MultipleChoice') {
       updatedQuestion.questionType = {
-        "MultipleChoice": {
-          options: [
-            'Option 1', 'Option 2'
-          ]
-        }
+        MultipleChoice: {
+          options: ['Option 1', 'Option 2'],
+        },
       };
-    }
-    else if (questionTypeName === "Checkbox") {
+    } else if (questionTypeName === 'Checkbox') {
       updatedQuestion.questionType = {
-        "Checkbox": {
-          options: [
-            'Option 1', 'Option 2'
-          ]
-        }
+        Checkbox: {
+          options: ['Option 1', 'Option 2'],
+        },
       };
-    }
-    else if (questionTypeName === "Essay") {
+    } else if (questionTypeName === 'Essay') {
       updatedQuestion.questionType = {
-        "Essay": null,
+        Essay: null,
       };
-    }
-    else if (questionTypeName === "Range") {
+    } else if (questionTypeName === 'Range') {
       updatedQuestion.questionType = {
-        "Range": {
+        Range: {
           minRange: BigInt(1),
           maxRange: BigInt(10),
-        }
+        },
       };
     }
 
@@ -72,11 +66,13 @@ export default function QuestionField({
   const addOption = () => {
     const updatedQuestion = { ...question };
 
-    if ("MultipleChoice" in updatedQuestion.questionType) {
-      updatedQuestion.questionType.MultipleChoice.options.push("New Option");
-    }
-    else if ("Checkbox" in updatedQuestion.questionType) {
-      updatedQuestion.questionType.Checkbox.options.push("New Option");
+    if ('MultipleChoice' in updatedQuestion.questionType) {
+      updatedQuestion.questionType.MultipleChoice.options.push('New Option');
+    } else if ('Checkbox' in updatedQuestion.questionType) {
+      updatedQuestion.questionType.Checkbox.options.push('New Option');
+    } else if ('Range' in updatedQuestion.questionType) {
+      updatedQuestion.questionType.Range.minRange = BigInt(1);
+      updatedQuestion.questionType.Range.maxRange = BigInt(10);
     }
 
     onChange(updatedQuestion);
@@ -85,10 +81,9 @@ export default function QuestionField({
   const updateOption = (index: number, value: string) => {
     const updatedQuestion = { ...question };
 
-    if ("MultipleChoice" in updatedQuestion.questionType) {
+    if ('MultipleChoice' in updatedQuestion.questionType) {
       updatedQuestion.questionType.MultipleChoice.options[index] = value;
-    }
-    else if ("Checkbox" in updatedQuestion.questionType) {
+    } else if ('Checkbox' in updatedQuestion.questionType) {
       updatedQuestion.questionType.Checkbox.options[index] = value;
     }
 
@@ -98,19 +93,22 @@ export default function QuestionField({
   const removeOption = (index: number) => {
     const updatedQuestion = { ...question };
 
-    if ("MultipleChoice" in updatedQuestion.questionType) {
+    if ('MultipleChoice' in updatedQuestion.questionType) {
       updatedQuestion.questionType.MultipleChoice.options.splice(index, 1);
-    }
-    else if ("Checkbox" in updatedQuestion.questionType) {
+    } else if ('Checkbox' in updatedQuestion.questionType) {
       updatedQuestion.questionType.Checkbox.options.splice(index, 1);
     }
 
     onChange(updatedQuestion);
   };
 
-  const questionOptions = "MultipleChoice" in question.questionType ? question.questionType.MultipleChoice.options
-    : "Checkbox" in question.questionType ? question.questionType.Checkbox.options : null;
-  const isMultipleChoice = "MultipleChoice" in question.questionType;
+  const questionOptions =
+    'MultipleChoice' in question.questionType
+      ? question.questionType.MultipleChoice.options
+      : 'Checkbox' in question.questionType
+        ? question.questionType.Checkbox.options
+        : null;
+  const isMultipleChoice = 'MultipleChoice' in question.questionType;
 
   return (
     <div className="space-y-4">
@@ -121,7 +119,10 @@ export default function QuestionField({
           placeholder="Question"
           className="flex-1"
         />
-        <Select value={Object.keys(question.questionType)[0]} onValueChange={handleTypeChange}>
+        <Select
+          value={Object.keys(question.questionType)[0]}
+          onValueChange={handleTypeChange}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Question Type" />
           </SelectTrigger>
@@ -134,15 +135,34 @@ export default function QuestionField({
         </Select>
       </div>
 
-      {"Essay" in question.questionType && (
+      {'Essay' in question.questionType && (
         <Textarea
           disabled
           placeholder="Long answer text"
-          className="max-w-md bg-muted/50"
+          className="w-full bg-muted/50"
         />
       )}
+      {'Range' in question.questionType && (
+        <div className="w-full">
+          <Slider
+            defaultValue={[
+              Number(question.questionType.Range.minRange),
+              Number(question.questionType.Range.maxRange),
+            ]}
+            min={1}
+            max={10}
+            step={1}
+            disabled
+            className="w-full"
+          />
+          <div className="flex justify-between text-sm text-muted-foreground mt-2">
+            <span>Min: {Number(question.questionType.Range.minRange)}</span>
+            <span>Max: {Number(question.questionType.Range.maxRange)}</span>
+          </div>
+        </div>
+      )}
 
-      {(questionOptions) && (
+      {questionOptions && (
         <div className="space-y-2">
           {questionOptions.map((option, index) => (
             <div key={index} className="flex items-center gap-2">

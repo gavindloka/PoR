@@ -8,14 +8,24 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import QuestionField from './QuestionField';
 import FormPreview from './FormPreview';
-import type { Backend, Form, FormMetadata, Question } from '../declarations/backend/backend.did.d.ts';
+import type {
+  Backend,
+  Form,
+  FormMetadata,
+  Question,
+} from '../declarations/backend/backend.did.d.ts';
 import { Principal } from '@ic-reactor/react/dist/types';
-import { useUpdateCall } from '@ic-reactor/react';
+import {
+  ActorProvider,
+  CandidAdapterProvider,
+  useUpdateCall,
+} from '@ic-reactor/react';
 import { toast } from 'sonner';
+import { idlFactory } from '@/declarations/icp_ledger_canister';
 
 type Props = {
   originalForm: Form;
-}
+};
 
 export type LocalForm = {
   questions: WithId<Question>[];
@@ -23,7 +33,7 @@ export type LocalForm = {
   creator: Principal;
   metadata: FormMetadata;
   createdAt: bigint;
-}
+};
 
 export type WithId<T> = T & { _id: string };
 
@@ -31,12 +41,16 @@ export function giveId<T extends object>(any: T): WithId<T> {
   return { ...any, _id: crypto.randomUUID() };
 }
 
-function removeId<T extends { _id: string }>(any: T): Omit<T, "_id"> {
+function removeId<T extends { _id: string }>(any: T): Omit<T, '_id'> {
   const { _id, ...rest } = any;
-  return rest as Omit<T, "_id">;
+  return rest as Omit<T, '_id'>;
 }
 
-function useDebouncedEffect(callback: () => void, dependencies: any[], delay: number = 1000) {
+function useDebouncedEffect(
+  callback: () => void,
+  dependencies: any[],
+  delay: number = 1000,
+) {
   useEffect(() => {
     const handler = setTimeout(callback, delay);
     return () => clearTimeout(handler); // Clear timeout if dependencies change before delay
@@ -51,31 +65,34 @@ export default function FormBuilder({ originalForm }: Props) {
   const [currentForm, setCurrentForm] = useState(form);
   const [activeTab, setActiveTab] = useState('edit');
   const { call: updateMetadata } = useUpdateCall<Backend>({
-    functionName: 'updateFormMetadata'
+    functionName: 'updateFormMetadata',
   });
   const { call: updateQuestions } = useUpdateCall<Backend>({
-    functionName: 'setFormQuestions'
+    functionName: 'setFormQuestions',
   });
 
   useDebouncedEffect(() => {
-    console.log("Called update");
+    console.log('Called update');
     updateMetadata([currentForm.id, currentForm.metadata])
       .then((response) => {
-        if (response && "err" in response) {
+        if (response && 'err' in response) {
           toast.error(response.err);
         }
       })
       .catch((error) => {
-        toast.error(error)
+        toast.error(error);
       });
-    updateQuestions([currentForm.id, currentForm.questions.map((question) => removeId(question))])
+    updateQuestions([
+      currentForm.id,
+      currentForm.questions.map((question) => removeId(question)),
+    ])
       .then((response) => {
-        if (response && "err" in response) {
+        if (response && 'err' in response) {
           toast.error(response.err);
         }
       })
       .catch((error) => {
-        toast.error(error)
+        toast.error(error);
       });
   }, [currentForm]);
 
@@ -83,8 +100,8 @@ export default function FormBuilder({ originalForm }: Props) {
     const newQuestion: Question = {
       formId: form.id,
       isRequired: true,
-      questionTitle: "Untitled Question",
-      questionType: { "Essay": null },
+      questionTitle: 'Untitled Question',
+      questionType: { Essay: null },
     };
     currentForm.questions.push(giveId(newQuestion));
     setCurrentForm({ ...currentForm });
@@ -119,21 +136,12 @@ export default function FormBuilder({ originalForm }: Props) {
     setCurrentForm({ ...currentForm, questions: items });
   };
 
-
   return (
     <div className="max-w-3xl mx-auto mb-10">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger
-            value="edit"
-          >
-            Edit
-          </TabsTrigger>
-          <TabsTrigger
-            value="preview"
-          >
-            Preview
-          </TabsTrigger>
+          <TabsTrigger value="edit">Edit</TabsTrigger>
+          <TabsTrigger value="preview">Preview</TabsTrigger>
         </TabsList>
 
         <TabsContent
@@ -144,15 +152,31 @@ export default function FormBuilder({ originalForm }: Props) {
             <CardContent className="pt-6">
               <Input
                 value={currentForm.metadata.title}
-                onChange={(e) => setCurrentForm({ ...currentForm, metadata: { ...currentForm.metadata, title: e.currentTarget.value } })}
+                onChange={(e) =>
+                  setCurrentForm({
+                    ...currentForm,
+                    metadata: {
+                      ...currentForm.metadata,
+                      title: e.currentTarget.value,
+                    },
+                  })
+                }
                 className=" font-bold border-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 "
                 style={{ fontSize: '1.5rem' }}
                 placeholder="Form Title"
               />
               <Textarea
                 value={currentForm.metadata.description}
-                onChange={(e) => setCurrentForm({ ...currentForm, metadata: { ...currentForm.metadata, description: e.currentTarget.value } })}
-                className="mt-2 border-none resize-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                onChange={(e) =>
+                  setCurrentForm({
+                    ...currentForm,
+                    metadata: {
+                      ...currentForm.metadata,
+                      description: e.currentTarget.value,
+                    },
+                  })
+                }
+                className="mt-2 border-none resize-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-2"
                 placeholder="Form Description"
               />
             </CardContent>
@@ -230,8 +254,17 @@ export default function FormBuilder({ originalForm }: Props) {
         </TabsContent>
 
         <TabsContent value="preview" className="mt-4">
-          <FormPreview {...form} />
+          <CandidAdapterProvider>
+            <ActorProvider
+              canisterId={'ryjl3-tyaaa-aaaaa-aaaba-cai'}
+              idlFactory={idlFactory}
+            >
+              <FormPreview {...{ currentForm, setCurrentForm }} />
+            </ActorProvider>
+          </CandidAdapterProvider>
         </TabsContent>
+
+        {/* <Modal {...{ currentForm, setCurrentForm }}></Modal> */}
       </Tabs>
     </div>
   );
