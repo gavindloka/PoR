@@ -39,7 +39,7 @@ export const Footer = (props: Props) => {
                 decentralized AI for secure, verified survey responses.
               </p>
               <div className="flex space-x-5">
-                <a href="#" className="group">
+                <a href="http://github.com/gavindloka/PoR" className="group" target='_blank'>
                   <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm transition-all duration-300 group-hover:bg-white/20 group-hover:scale-110">
                     <Github className="h-6 w-6 text-white" />
                   </div>

@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import React, { useRef } from 'react';
 import icpLogo from '../assets/internet-computer-icp-logo.png';
 import nnsLogo from '../assets/nnsLogo.png';
+import face from '../assets/facerecog.png';
 import workPic from '../assets/section3.jpg';
 import CountUp from '@/components/CountUp';
 import {
@@ -16,7 +17,9 @@ import {
   LineChart,
   Lock,
   Rocket,
+  ScanFace,
   Share2,
+  Smile,
   TrendingUp,
   Users,
   Wallet,
@@ -29,6 +32,7 @@ import { AvatarFallback, AvatarImage, Avatar } from '@/components/ui/avatar';
 import { a } from 'framer-motion/dist/types.d-6pKw1mTI';
 import { useNavigate } from 'react-router';
 import { FloatingElements } from '@/components/FloatingElements';
+import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
 
 const HomePage = () => {
   const containerVariants = {
@@ -76,43 +80,33 @@ const HomePage = () => {
     avatar: string;
   }
 
-  const Testimonial = ({ name, role, content, avatar }: TestimonialProps) => (
-    <Card className="bg-white/50 backdrop-blur-sm border border-purple-100">
-      <CardContent className="pt-6">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-10 w-10 border-2 border-purple-200">
-            <AvatarImage src={avatar} alt={name} />
-            <AvatarFallback>{name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium text-purple-900">{name}</p>
-            <p className="text-sm text-purple-600">{role}</p>
-          </div>
-        </div>
-        <p className="mt-4 text-gray-600 italic">{content}</p>
-      </CardContent>
-    </Card>
-  );
   const testimonials = [
     {
       name: 'Sarah Johnson',
       role: 'Research Director',
       content:
-        'DeAI has revolutionized how we conduct market research. The verification system ensures we get quality data every time.',
-      avatar: '/placeholder.svg?height=40&width=40',
-    },
-    {
-      name: 'Michael Chen',
-      role: 'Data Scientist',
-      content:
-        "The blockchain integration provides a level of data integrity I've never seen before in survey platforms.",
+        'DeAI has optimized our data collection workflow. The verification system ensures we gather high-quality responses, improving the reliability of our research findings and industry reports.',
       avatar: '/placeholder.svg?height=40&width=40',
     },
     {
       name: 'Elena Rodriguez',
       role: 'Academic Researcher',
       content:
-        'The reward system has dramatically increased our response rates while maintaining high quality submissions.',
+        'DeAI’s incentive system enhances respondent engagement while maintaining submission integrity. This has significantly improved data quality in our large-scale behavioral studies.',
+      avatar: '/placeholder.svg?height=40&width=40',
+    },
+    {
+      name: 'James Carter',
+      role: 'Market Analyst',
+      content:
+        'Reliable consumer insights are crucial for market research. DeAI’s approach to survey verification minimizes response bias, strengthening our predictive models and strategic analysis.',
+      avatar: '/placeholder.svg?height=40&width=40',
+    },
+    {
+      name: 'Sophia Lee',
+      role: 'UX Researcher',
+      content:
+        'User experience studies depend on high-quality feedback. DeAI filters out unreliable data, ensuring our usability testing results lead to precise design improvements and innovation.',
       avatar: '/placeholder.svg?height=40&width=40',
     },
   ];
@@ -241,16 +235,15 @@ const HomePage = () => {
               transition={{ duration: 0.5, delay: 1.2 }}
             >
               <div>
-                <CircleCheck className='w-10 h-10 text-purple-100'/>
+                <CircleCheck className="w-10 h-10 text-white" />
               </div>
-              <p className='font-bold text-white text-xl'>
+              <p className="font-bold text-white text-xl">
                 Proof, Not Promises
               </p>
 
               <p className="font-light text-white text-center text-xs">
-              No bias, just real data for your research
+                No bias, just real data for your research
               </p>
-              
             </motion.div>
 
             <motion.div
@@ -311,6 +304,9 @@ const HomePage = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.4 }}
             >
+              <div className="rounded-full text-white flex items-center justify-center ">
+                <ScanFace size={60} />
+              </div>
               <div>
                 <p className="font-bold text-2xl text-white">One Face</p>
                 <p className="font-bold text-2xl text-white">One Response</p>
@@ -324,84 +320,92 @@ const HomePage = () => {
       </div>
 
       <motion.section
-      ref={sectionRef}
-      className="w-full px-4 md:px-8 lg:px-20 py-16 lg:py-20 flex flex-col justify-center bg-white"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true, amount: 0.1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="max-w-7xl mx-auto w-full">
-        <motion.div
-          className="relative mb-16 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-purple-800 inline-block relative pb-2">
-            Key Features
-            <motion.span
-              className="h-1 bg-yellow-300 absolute left-0 bottom-0"
-              initial={{ width: 0 }}
-              whileInView={{ width: "100%" }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-            />
-          </h2>
-        </motion.div>
+        ref={sectionRef}
+        className="w-full px-4 md:px-8 lg:px-20 lg:py-28 flex flex-col justify-center bg-white"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="max-w-7xl mx-auto w-full">
+          <motion.div
+            className="relative mb-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-purple-800 inline-block relative pb-2">
+              Key Features
+              <motion.span
+                className="h-1 bg-yellow-300 absolute left-0 bottom-0"
+                initial={{ width: 0 }}
+                whileInView={{ width: '100%' }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+              />
+            </h2>
+          </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg p-6 transition-shadow"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-            >
-              <div className="">
-                <feature.icon className="w-10 h-10 text-purple-600 mb-4" />
-                <h3 className="text-xl font-semibold text-purple-800 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            </motion.div>
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                className="bg-white rounded-xl shadow-md hover:shadow-lg p-6 transition-shadow"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+              >
+                <div className="">
+                  <feature.icon className="w-10 h-10 text-purple-600 mb-4" />
+                  <h3 className="text-xl font-semibold text-purple-800 mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
-    </motion.section>
+      </motion.section>
 
-      <section className="w-full px-4 md:px-8 lg:px-20 py-20 bg-gradient-to-b from-white to-purple-50">
-        <div className="max-w-7xl mx-auto">
+      <motion.section
+        className="w-full py-28"
+        ref={sectionRef}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 1 }}
+      >
+        <div className="border mx-20 pt-20 pb-28 rounded-3xl bg-gradient-to-br from-purple-100 to-indigo-400 shadow-2xl">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-purple-100 text-purple-800 hover:bg-purple-200 px-4 py-1.5">
-              Success Stories
+              Real Voices, Real Impact
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-purple-800">
               What Our Users Say
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                viewport={{ once: true }}
-              >
-                <Testimonial {...testimonial} />
-              </motion.div>
-            ))}
+          <div className="rounded-md flex flex-col antialiased bg-transparent items-center justify-center relative overflow-hidden">
+            <InfiniteMovingCards
+              items={testimonials.map((testimonial) => ({
+                quote: testimonial.content,
+                name: testimonial.name,
+                title: testimonial.role,
+                avatar: testimonial.avatar,
+              }))}
+              direction="right"
+              speed="slow"
+            />
           </div>
         </div>
-      </section>
+      </motion.section>
 
       <motion.div
         ref={sectionRef}
-        className="w-full pt-10 pb-20 flex justify-center bg-white px-32 items-center gap-12"
+        className="w-full pt-10 pb-40 flex justify-center bg-white px-32 items-center gap-12"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
@@ -427,7 +431,7 @@ const HomePage = () => {
             transition={{ duration: 0.8, delay: 0.5 }}
             viewport={{ once: true, amount: 0.3 }}
           >
-            <button className="relative inline-flex h-12 overflow-hidden rounded-2xl p-[3px] focus:outline-none">
+            <button className="relative inline-flex h-12 overflow-hidden rounded-2xl p-[3px] focus:outline-none" onClick={()=>navigate("/browse")}>
               <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
               <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-xl bg-white px-3 py-1 font-satoshi text-lg text-purple-700 backdrop-blur-3xl">
                 Get Started
