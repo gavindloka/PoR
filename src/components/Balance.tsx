@@ -20,13 +20,15 @@ export const Balance = () => {
     args: [{ owner: principal, subaccount: [] }],
   });
   const balance = data
-  ? (typeof data === 'bigint' ? (Number(data) / 100_000_000).toFixed(2) : data)
-  : '0';
-
+    ? typeof data === 'bigint'
+      ? (Number(data) / 100_000_000).toFixed(2)
+      : data
+    : '0';
 
   useEffect(() => {
     call();
     console.log(balance);
+    console.log(principal.toText());
     if (error) console.error('Balance error: ' + error);
   }, []);
 

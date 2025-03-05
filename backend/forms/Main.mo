@@ -31,6 +31,10 @@ actor class Forms() {
     title : Text;
     description : Text;
     categories : [Text];
+    maxRespondent: Nat;
+    maxRewardPool:Nat;
+    rewardAmount:Nat;
+
   };
 
   public type Form = {
@@ -119,6 +123,9 @@ actor class Forms() {
         occupation = null;
         description = "";
         categories = [];
+        maxRespondent = 0;
+        maxRewardPool = 0;
+        rewardAmount = 0;
       };
       questions = [];
       responses = [];

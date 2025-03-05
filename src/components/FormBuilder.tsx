@@ -13,6 +13,7 @@ import type {
   Form,
   FormMetadata,
   Question,
+  FormResponse,
 } from '../declarations/backend/backend.did.d.ts';
 import { Principal } from '@ic-reactor/react/dist/types';
 import {
@@ -31,6 +32,7 @@ export type LocalForm = {
   questions: WithId<Question>[];
   id: string;
   creator: Principal;
+  responses: Array<FormResponse>;
   metadata: FormMetadata;
   createdAt: bigint;
 };

@@ -28,14 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Form } from '@/declarations/backend/backend.did';
+
 import { LocalForm } from './FormBuilder';
 import { Slider } from './ui/slider';
 import {
@@ -120,10 +113,6 @@ export default function FormPreview({
     console.log('MEMOOOO', new TextEncoder().encode(currentForm.id));
     call();
   };
-
-  useEffect(() => {
-    console.log('Questions updated:', questions);
-  }, [questions]);
 
   const formSchema = z.object({
     name: z
@@ -390,6 +379,7 @@ export default function FormPreview({
                                           if (date) {
                                             const input =
                                               date?.getTime() * 1000;
+
                                             currentForm.metadata.deadline = [
                                               BigInt(input),
                                             ];
@@ -545,6 +535,7 @@ export default function FormPreview({
                                       value={currentForm.metadata.occupation[0]?.toString()}
                                       onChange={(occupation) => {
                                         const input = occupation.id;
+                                        currentForm;
                                         currentForm.metadata.occupation = [
                                           input,
                                         ];
@@ -583,6 +574,30 @@ export default function FormPreview({
                           type="number"
                           placeholder="0.01"
                           className="mt-1"
+                          value={Number(currentForm.metadata.rewardAmount)}
+                          min={0.01}
+                          onChange={(e) => {
+                            let input = parseFloat(e.target.value);
+
+                            if (input < 0.01) {
+                              input = 0.01;
+                            }
+
+                            currentForm.metadata.rewardAmount = BigInt(
+                              Math.round(input * 100),
+                            );
+                            setCurrentForm({ ...currentForm });
+                            if (currentForm.metadata.rewardAmount > 0) {
+                              const maxRespondents = BigInt(
+                                currentForm.metadata.maxRewardPool /
+                                  currentForm.metadata.rewardAmount,
+                              );
+
+                              currentForm.metadata.maxRespondent =
+                                maxRespondents;
+                              setCurrentForm({ ...currentForm });
+                            }
+                          }}
                         />
                       </div>
                       <div>
@@ -592,9 +607,33 @@ export default function FormPreview({
                         <Input
                           id="reward-pool"
                           type="number"
-                          placeholder="10.00"
-                          value={currentForm.questions.length * 0.1}
+                          placeholder="0.1"
+                          value={Number(currentForm.metadata.maxRewardPool)}
+                          min={currentForm.questions.length * 0.1}
+                          step={0.1}
                           className="mt-1"
+                          onChange={(e) => {
+                            let input = parseFloat(e.target.value);
+
+                            if (input < 0.1) {
+                              input = 0.1;
+                            }
+
+                            currentForm.metadata.maxRewardPool = BigInt(
+                              Math.round(input * 100),
+                            );
+                            setCurrentForm({ ...currentForm });
+                            if (currentForm.metadata.rewardAmount > 0) {
+                              const maxRespondents = BigInt(
+                                currentForm.metadata.maxRewardPool /
+                                  currentForm.metadata.rewardAmount,
+                              );
+
+                              currentForm.metadata.maxRespondent =
+                                maxRespondents;
+                              setCurrentForm({ ...currentForm });
+                            }
+                          }}
                         />
                       </div>
                       <div>
@@ -602,10 +641,12 @@ export default function FormPreview({
                           Maximum Respondents
                         </Label>
                         <Input
+                          disabled
                           id="max-respondents"
                           type="number"
                           placeholder="1000"
                           className="mt-1"
+                          value={Number(currentForm.metadata.maxRespondent)}
                         />
                       </div>
                     </div>
