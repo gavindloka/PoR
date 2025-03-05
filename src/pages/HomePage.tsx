@@ -99,14 +99,14 @@ const HomePage = () => {
       name: 'James Carter',
       role: 'Market Analyst',
       content:
-        'Reliable consumer insights are crucial for market research. DeAI’s approach to survey verification minimizes response bias, strengthening our predictive models and strategic analysis.',
+        'Reliable consumer insights are crucial for market research. DeAI’s face recognition technology ensures that survey responses are verified, minimizing response bias and strengthening our predictive models and strategic analysis.',
       avatar: '/placeholder.svg?height=40&width=40',
     },
     {
       name: 'Sophia Lee',
       role: 'UX Researcher',
       content:
-        'User experience studies depend on high-quality feedback. DeAI filters out unreliable data, ensuring our usability testing results lead to precise design improvements and innovation.',
+        'User experience studies depend on high-quality feedback. DeAI’s face recognition system verifies survey responses, ensuring the data is reliable and enabling precise design improvements and innovation.',
       avatar: '/placeholder.svg?height=40&width=40',
     },
   ];
@@ -371,7 +371,7 @@ const HomePage = () => {
       </motion.section>
 
       <motion.section
-        className="w-full py-28"
+        className="w-full pb-28 pt-16"
         ref={sectionRef}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}

@@ -40,8 +40,8 @@ actor class Backend() {
   public shared ({ caller }) func updateFormMetadata(formId : Text, newMetadata : Forms.FormMetadata) : async Response<()> {
     await Forms.updateFormMetadata(caller, formId, newMetadata);
   };
-
+  
   public shared ({ caller }) func setFormQuestions(formId : Text, questions : [Forms.Question]) : async Response<()> {
     await Forms.setFormQuestions(caller, formId, questions);
-  };
+  };    
 };

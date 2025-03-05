@@ -134,12 +134,6 @@ const ProfilePage = () => {
     }
   }
 
-  const handleCountryChange = (country: Country) => {
-    console.log('Selected Country: ', country.name);
-    setSelectedCountry(country.alpha3);
-    form.setValue('country', country.name);
-  };
-
   return (
     <>
       <div className="flex py-10 w-full items-center justify-center px-20">
