@@ -238,14 +238,24 @@ actor class Forms() {
     };
   };
 
+  // TODO: verify kalo user cm isi sekali
   public shared func addFormResponse(
     caller : Principal,
     formId : Text,
     answers : [AnswerType],
   ) : async Response<()> {
     // kalau questionnya g required n ga dijawab, masukin null aja di answernya
+    // question yg tipenya multiple choice, kasih index dr jawabanny aj
     if (Principal.isAnonymous(caller)) {
       return #err("Unauthorized");
+    };
+
+    let userResponse = await Auth.getUser(caller);
+    switch (userResponse) {
+      case (#ok(_)) {};
+      case (#err(error)) {
+        return #err(error);
+      };
     };
 
     let form = forms.get(formId);
@@ -255,7 +265,6 @@ actor class Forms() {
           return #err("Form is not yet published");
         };
 
-        // jawabanny gabole diatas deadline
         let submitTime : Time = Time.now();
         let deadline : ?Time = f.metadata.deadline;
         switch (deadline) {
@@ -267,7 +276,6 @@ actor class Forms() {
           case (null) {};
         };
 
-        // questions.length harus sama dg answers.length
         if (f.questions.size() != answers.size()) {
           return #err("Invalid response format: question and answer count are different");
         };
@@ -299,6 +307,11 @@ actor class Forms() {
               case (#Range(null)) {
                 return #err("Question " # debug_show (i) # " is required");
               };
+              case (#Checkbox(choices)) {
+                if (choices.size() == 0) {
+                  return #err("Question " # debug_show (i) # " is required");
+                };
+              };
               case _ {};
             };
           };
@@ -310,12 +323,7 @@ actor class Forms() {
           creator = f.creator;
           createdAt = f.createdAt;
           questions = f.questions;
-          responses = Array.append(f.responses, [{
-            formId = formId;
-            answerer = caller;
-            answers = answers;
-            submitTime = submitTime
-          }]);
+          responses = Array.append(f.responses, [{ formId = formId; answerer = caller; answers = answers; submitTime = submitTime }]);
         };
         forms.put(formId, newForm);
 
@@ -323,6 +331,95 @@ actor class Forms() {
       };
       case (null) {
         return #err("Form not found");
+      };
+    };
+  };
+
+  public type SummaryType = {
+    #Essay : [Text];
+    #FrequencyArray : [Nat];
+    #FrequencyMap : HashMap<Nat, Nat>;
+  };
+
+  public type FormResponseSummary = {
+    question : Question;
+    summary : SummaryType;
+  };
+
+  public composite query func getFormResponseSummary(caller : Principal, formId : Text) : Response<[FormResponseSummary]> {
+    if (Principal.isAnonymous(caller)) {
+      return #err("Unauthorized");
+    };
+
+    let formOwnership = validateFormOwnership(formId, caller);
+    switch (formOwnership) {
+      case (#ok(form)) {
+        let responses = form.responses;
+        let questions = form.questions;
+
+        let summaries : [var FormResponseSummary] = Array.thaw<FormResponseSummary>(
+          Array.tabulate<FormResponseSummary>(
+            questions.size(),
+            func(i) {
+              let question = questions[i];
+
+              let summary : SummaryType = switch (question.questionType) {
+                case (#Essay) { #Essay([]) };
+                case (#MultipleChoice(question)) {
+                  #FrequencyArray(Array.init<Nat>(question.options.size, 0));
+                };
+                case (#Checkbox(question)) {
+                  #FrequencyArray(Array.init<Nat>(question.options.size, 0));
+                };
+                case (#Range(question)) {
+                  let map = HashMap.HashMap<Nat, Nat>(5, Nat.equal, Nat.hash);
+
+                  for (i in Iter.range(question.minRange, question.maxRange)) {
+                    map.put(i, 0);
+                  };
+
+                  #FrequencyMap(map);
+                };
+              };
+
+              {
+                question = question;
+                summary = summary;
+              };
+            },
+          )
+        );
+
+        for (response in responses) {
+          let answers = response.answers;
+
+          for (i in Iter.range(0, answers.size())) {
+            switch (answers[i]) {
+              case (#Essay(answer)) {
+                // unpack null
+                switch (answer) {
+                  case (?a) {
+                    // add to summary
+                    switch (summaries[i].summary) {
+                      case (#Essay(arr)) {
+                        // summaries[i] = ;
+                      };
+                      case (_) {};
+                    };
+                  };
+                  case (null) {};
+                };
+              }
+              //#Essay : ?Text;
+              // #MultipleChoice : ?Nat;
+              // #Checkbox : [Nat];
+              // #Range : ?Int64;
+            };
+          };
+        };
+      };
+      case (#err(error)) {
+        return #err(error);
       };
     };
   };

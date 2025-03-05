@@ -44,4 +44,8 @@ actor class Backend() {
   public shared ({ caller }) func setFormQuestions(formId : Text, questions : [Forms.Question]) : async Response<()> {
     await Forms.setFormQuestions(caller, formId, questions);
   };
+
+  public shared ({ caller }) func addFormResponse(formId : Text, answers : [Forms.AnswerType]) : async Response<()> {
+    await Forms.addFormResponse(caller, formId, answers);
+  };
 };
