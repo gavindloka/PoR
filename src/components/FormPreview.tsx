@@ -27,7 +27,6 @@ import { CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-
 import {
   Dialog,
   DialogContent,
@@ -36,7 +35,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Backend } from '@/declarations/backend/backend.did';
 import type { FormMetadata } from '@/declarations/backend/backend.did.d.ts';
 import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
 import { cn } from '@/lib/utils';
@@ -54,13 +52,19 @@ import { OccupationDropdown } from './ui/occupation-dropdown';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
+import { backend } from '@/declarations/backend';
+import { toast } from 'sonner';
 
 export type ICPLedger = typeof icp_ledger_canister;
 
+export type Backend = typeof backend;
+
 export default function FormPreview({
   currentForm,
+  callPublish
 }: {
   currentForm: LocalForm;
+  callPublish: (newMetadata: FormMetadata) => void;
 }) {
   const questions = currentForm.questions;
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -84,7 +88,6 @@ export default function FormPreview({
   };
 
   function hashMemo(str: String) {
-    console.log('Generate memo: ', str);
     let hash = 0n;
     for (let i = 0; i < str.length; i++) {
       hash = (hash * 31n + BigInt(str.charCodeAt(i))) % 2n ** 64n; // Keep within 64-bit
@@ -106,7 +109,7 @@ export default function FormPreview({
           owner: DFinityPrincipal.fromText('be2us-64aaa-aaaaa-qaabq-cai'),
           subaccount: [],
         },
-        amount: BigInt(10000),
+        amount: BigInt(localMetadata.maxRewardPool),
         fee: [],
         spender_subaccount: [],
         memo: [hashMemo(currentForm.id)],
@@ -114,24 +117,24 @@ export default function FormPreview({
       },
     ],
   });
-  const {
-    call: changePublish,
-    data: dataPublish,
-    loading: dataLoading,
-    error: dataError,
-  } = useUpdateCall<Backend>({
-    functionName: 'changeFormPublish',
-    onLoading: (loading) => console.log('Loading:', loading),
-    onError: (error) => console.error('Error:', error),
-    onSuccess: (data) => console.log('Success:', data),
-  });
 
-  const handleSendICP = (e: React.FormEvent) => {
+  const handleSendICP = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Sending ICPPP', data);
-    call();
-    changePublish([currentForm.id]);
-    console.log(currentForm.metadata.published);
+    try {
+      const response = await call();
+      if (!response) {
+        toast.error("Unknown error occurred");
+        return;
+      }
+      if ('err' in response) {
+        toast.error(response.err as string);
+        return;
+      }
+      console.log("ICP successfully sent");
+      callPublish(localMetadata);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const formSchema = z.object({
@@ -216,7 +219,7 @@ export default function FormPreview({
                 <Slider
                   value={[
                     formData[index] ??
-                      Number(question.questionType.Range.minRange),
+                    Number(question.questionType.Range.minRange),
                   ]}
                   min={Number(question.questionType.Range.minRange)}
                   max={Number(question.questionType.Range.maxRange)}
@@ -268,8 +271,8 @@ export default function FormPreview({
                         const newValues = checked
                           ? [...currentValues, idx]
                           : currentValues.filter(
-                              (id: string) => parseInt(id) !== idx,
-                            );
+                            (id: string) => parseInt(id) !== idx,
+                          );
                         handleInputChange(index, newValues);
                       }}
                       className="w-5 h-5 border border-gray-300 rounded-md bg-white data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 flex items-center justify-center"
@@ -361,7 +364,7 @@ export default function FormPreview({
                                         className={cn(
                                           'w-[340px] justify-start text-left font-normal',
                                           !localMetadata.deadline[0] &&
-                                            'text-muted-foreground',
+                                          'text-muted-foreground',
                                         )}
                                       >
                                         <CalendarIcon />
@@ -388,10 +391,10 @@ export default function FormPreview({
                                         selected={
                                           localMetadata.deadline[0]
                                             ? new Date(
-                                                Number(
-                                                  localMetadata.deadline[0],
-                                                ) / 1000,
-                                              )
+                                              Number(
+                                                localMetadata.deadline[0],
+                                              ) / 1000,
+                                            )
                                             : undefined
                                         }
                                         onSelect={(date) => {
@@ -616,7 +619,7 @@ export default function FormPreview({
                             if (localMetadata.rewardAmount > 0) {
                               const maxRespondents = BigInt(
                                 localMetadata.maxRewardPool /
-                                  localMetadata.rewardAmount,
+                                localMetadata.rewardAmount,
                               );
 
                               localMetadata.maxRespondent = maxRespondents;
@@ -654,7 +657,7 @@ export default function FormPreview({
                             if (localMetadata.rewardAmount > 0) {
                               const maxRespondents = BigInt(
                                 localMetadata.maxRewardPool /
-                                  localMetadata.rewardAmount,
+                                localMetadata.rewardAmount,
                               );
 
                               localMetadata.maxRespondent = maxRespondents;

@@ -214,7 +214,7 @@ actor class Forms() {
         if (f.metadata.published and f.metadata.deadline != newMetadata.deadline) {
           return #err("Form deadline can't be changed after deadline");
         };
-        if (newMetadata.published and Option.isNull(f.metadata.deadline)) {
+        if (newMetadata.published and Option.isNull(newMetadata.deadline)) {
           return #err("Form deadline must be defined before publish");
         };
 

@@ -1,6 +1,5 @@
 import Result "mo:base/Result";
 import Bool "mo:base/Bool";
-import Debug "mo:base/Debug";
 import Auth "canister:auth";
 import Forms "canister:forms";
 
@@ -55,7 +54,6 @@ actor class Backend() {
   };
 
   public shared ({ caller }) func changeFormPublish(formId : Text) : async Response<Bool> {
-    Debug.print("Chipi Chipi Chapa Chapa");
     await Forms.changeFormPublish(caller, formId);
   };
 };

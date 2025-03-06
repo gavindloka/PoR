@@ -27,8 +27,6 @@ export const Balance = () => {
 
   useEffect(() => {
     call();
-    console.log(balance);
-    console.log(principal.toText());
     if (error) console.error('Balance error: ' + error);
   }, []);
 

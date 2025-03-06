@@ -69,10 +69,10 @@ export default function FormBuilder({ originalForm }: Props) {
   const [currentForm, setCurrentForm] = useState(form);
   const [activeTab, setActiveTab] = useState('edit');
 
-  const { call: updateMetadata } = useUpdateCall<Backend>({
+  const { call: updateMetadata } = useUpdateCall<Backend, 'updateFormMetadata'>({
     functionName: 'updateFormMetadata',
   });
-  const { call: updateQuestions } = useUpdateCall<Backend>({
+  const { call: updateQuestions } = useUpdateCall<Backend, 'setFormQuestions'>({
     functionName: 'setFormQuestions',
   });
 
@@ -100,6 +100,40 @@ export default function FormBuilder({ originalForm }: Props) {
         toast.error(error);
       });
   }, [currentForm]);
+
+  const {
+    call: changePublish,
+    data: dataPublish,
+    loading: dataLoading,
+    error: dataError,
+  } = useUpdateCall<Backend, 'changeFormPublish'>({
+    functionName: 'changeFormPublish',
+    onLoading: (loading) => console.log('Loading:', loading),
+    onError: (error) => console.error('Error:', error),
+    onSuccess: (data) => console.log('Success:', data),
+  });
+
+  const callPublish = async (newMetadata: FormMetadata) => {
+    try {
+      const response = await updateMetadata([currentForm.id, currentForm.metadata])
+      if (response && 'ok' in response) {
+        try {
+          const response = await changePublish([currentForm.id]);
+          if (response && 'err' in response) {
+            toast.error(response.err);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+      if (response && 'err' in response) {
+        toast.error(response.err);
+      }
+    }
+    catch (error) {
+      console.error(error);
+    }
+  };
 
   const addQuestion = () => {
     const newQuestion: Question = {
@@ -264,7 +298,7 @@ export default function FormBuilder({ originalForm }: Props) {
               canisterId={'ryjl3-tyaaa-aaaaa-aaaba-cai'}
               idlFactory={idlFactory}
             >
-              <FormPreview {...{ currentForm }} />
+              <FormPreview {...{ currentForm, callPublish }} />
             </ActorProvider>
           </CandidAdapterProvider>
         </TabsContent>
