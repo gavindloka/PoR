@@ -23,6 +23,7 @@ import type {
 } from '@/declarations/backend/backend.did.d.ts';
 import FormPreview from './FormPreview';
 import QuestionField from './QuestionField';
+import FormSummaryViewer from './FormSummaryViewer';
 
 type Props = {
   originalForm: Form;
@@ -178,8 +179,9 @@ export default function FormBuilder({ originalForm }: Props) {
   return (
     <div className="max-w-3xl mx-auto mb-10">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="edit">Edit</TabsTrigger>
+          <TabsTrigger value="responses">Responses</TabsTrigger>
           <TabsTrigger value="preview">Preview</TabsTrigger>
         </TabsList>
 
@@ -290,6 +292,10 @@ export default function FormBuilder({ originalForm }: Props) {
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Question
           </Button>
+        </TabsContent>
+
+        <TabsContent value="responses" className="mt-4">
+					<FormSummaryViewer />
         </TabsContent>
 
         <TabsContent value="preview" className="mt-4">

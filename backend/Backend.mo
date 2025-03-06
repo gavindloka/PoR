@@ -49,7 +49,7 @@ actor class Backend() {
     await Forms.addFormResponse(caller, formId, answers);
   };
 
-  public composite query ({ caller }) func getFormResponseSummary(formId : Text) : async Response<[Forms.FormResponseSummary]> {
+  public composite query ({ caller }) func getFormResponseSummary(formId : Text) : async Response<(Nat, [Forms.FormResponseSummary])> {
     await Forms.getFormResponseSummary(caller, formId);
   };
 

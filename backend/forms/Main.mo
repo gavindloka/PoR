@@ -351,7 +351,7 @@ actor class Forms() {
     };
   };
 
-  public composite query func getFormResponseSummary(caller : Principal, formId : Text) : async Response<[FormResponseSummary]> {
+  public composite query func getFormResponseSummary(caller : Principal, formId : Text) : async Response<(Nat, [FormResponseSummary])> {
     if (Principal.isAnonymous(caller)) {
       return #err("Unauthorized");
     };
@@ -479,7 +479,7 @@ actor class Forms() {
             };
           };
         };
-        return #ok(Array.freeze(summaries));
+        return #ok(responses.size(), Array.freeze(summaries));
       };
       case (#err(error)) {
         return #err(error);
