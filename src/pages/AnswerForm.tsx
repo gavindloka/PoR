@@ -10,7 +10,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
-import { Backend, Response_3 } from '@/declarations/backend/backend.did';
+import { Backend, Response_4 } from '@/declarations/backend/backend.did';
 import { useQueryCall, useUpdateCall } from '@ic-reactor/react';
 import { Checkbox } from '@radix-ui/react-checkbox';
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
@@ -25,7 +25,7 @@ export default function AnswerForm() {
     functionName: 'getForm',
     args: [id ?? ''],
   });
-  const form = data as Response_3 | undefined;
+  const form = data as Response_4 | undefined;
 
   const {
     call,

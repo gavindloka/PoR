@@ -6,11 +6,8 @@ import Principal "mo:base/Principal";
 import Array "mo:base/Array";
 import TrieMap "mo:base/TrieMap";
 import Bool "mo:base/Bool";
-import Int64 "mo:base/Int64";
 import Iter "mo:base/Iter";
 import Option "mo:base/Option";
-import HashMap "mo:base/HashMap";
-import Nat32 "mo:base/Nat32";
 import Auth "canister:auth";
 import UUID "mo:uuid/UUID";
 import Source "mo:uuid/async/SourceV4";
@@ -33,9 +30,9 @@ actor class Forms() {
     title : Text;
     description : Text;
     categories : [Text];
-    maxRespondent: Nat;
-    maxRewardPool:Nat;
-    rewardAmount:Nat;
+    maxRespondent : Nat;
+    maxRewardPool : Nat;
+    rewardAmount : Nat;
 
   };
 
@@ -86,7 +83,7 @@ actor class Forms() {
     #Essay : ?Text;
     #MultipleChoice : ?Nat;
     #Checkbox : [Nat];
-    #Range : ?Int64;
+    #Range : ?Nat;
   };
 
   public type FormResponse = {
@@ -94,6 +91,17 @@ actor class Forms() {
     answerer : Principal;
     answers : [AnswerType];
     submitTime : Time;
+  };
+
+  public type SummaryType = {
+    #Essay : [Text];
+    #FrequencyArray : [Nat];
+    #FrequencyMap : [(Nat, Nat)];
+  };
+
+  public type FormResponseSummary = {
+    question : Question;
+    summary : SummaryType;
   };
 
   let forms = TrieMap.TrieMap<Text, Form>(Text.equal, Text.hash);
@@ -337,94 +345,141 @@ actor class Forms() {
     };
   };
 
-  // public type SummaryType = {
-  //   #Essay : [Text];
-  //   #FrequencyArray : [Nat];
-  //   #FrequencyMap : HashMap.HashMap<Nat, Nat>;
-  // };
+  public composite query func getFormResponseSummary(caller : Principal, formId : Text) : async Response<[FormResponseSummary]> {
+    if (Principal.isAnonymous(caller)) {
+      return #err("Unauthorized");
+    };
 
-  // public type FormResponseSummary = {
-  //   question : Question;
-  //   summary : SummaryType;
-  // };
+    let formOwnership = validateFormOwnership(formId, caller);
+    switch (formOwnership) {
+      case (#ok(form)) {
+        let responses = form.responses;
+        let questions = form.questions;
 
-  // public composite query func getFormResponseSummary(caller : Principal, formId : Text) : Response<[FormResponseSummary]> {
-  //   if (Principal.isAnonymous(caller)) {
-  //     return #err("Unauthorized");
-  //   };
+        // initialize summary array
+        let summaries : [var FormResponseSummary] = Array.thaw<FormResponseSummary>(
+          Array.tabulate<FormResponseSummary>(
+            questions.size(),
+            func(i) {
+              let question = questions[i];
 
-  //   let formOwnership = validateFormOwnership(formId, caller);
-  //   switch (formOwnership) {
-  //     case (#ok(form)) {
-  //       let responses = form.responses;
-  //       let questions = form.questions;
+              let summary : SummaryType = switch (question.questionType) {
+                case (#Essay) { #Essay([]) };
+                case (#MultipleChoice(question)) {
+                  #FrequencyArray(Array.tabulate<Nat>(question.options.size(), func _ = 0));
+                };
+                case (#Checkbox(question)) {
+                  #FrequencyArray(Array.tabulate<Nat>(question.options.size(), func _ = 0));
+                };
+                case (#Range(question)) {
+                  #FrequencyMap(
+                    Array.tabulate<(Nat, Nat)>(
+                      question.maxRange - question.minRange + 1,
+                      func(i) {
+                        ((i + question.minRange), 0)
+                      },
+                    )
+                  );
+                };
+              };
 
-  //       let summaries : [var FormResponseSummary] = Array.thaw<FormResponseSummary>(
-  //         Array.tabulate<FormResponseSummary>(
-  //           questions.size(),
-  //           func(i) {
-  //             let question = questions[i];
+              {
+                question = question;
+                summary = summary;
+              };
+            },
+          )
+        );
 
-  //             let summary : SummaryType = switch (question.questionType) {
-  //               case (#Essay) { #Essay([]) };
-  //               case (#MultipleChoice(question)) {
-  //                 #FrequencyArray(Array.freeze<Nat>(Array.init<Nat>(question.options.size(), 0)));
-  //               };
-  //               case (#Checkbox(question)) {
-  //                 #FrequencyArray(Array.freeze<Nat>(Array.init<Nat>(question.options.size(), 0)));
-  //               };
-  //               case (#Range(question)) {
-  //                 let map = HashMap.HashMap<Nat, Nat>(5, Nat.equal, func (x) {Nat32.fromNat(x)});
+        // fill the summary
+        for (response in responses.vals()) {
+          let answers = response.answers;
 
-  //                 for (i in Iter.range(question.minRange, question.maxRange)) {
-  //                   map.put(i, 0);
-  //                 };
-
-  //                 #FrequencyMap(map);
-  //               };
-  //             };
-
-  //             {
-  //               question = question;
-  //               summary = summary;
-  //             };
-  //           },
-  //         )
-  //       );
-
-  //       for (response in responses) {
-  //         let answers = response.answers;
-
-  //         for (i in Iter.range(0, answers.size())) {
-  //           switch (answers[i]) {
-  //             case (#Essay(answer)) {
-  //               // unpack null
-  //               switch (answer) {
-  //                 case (?a) {
-  //                   // add to summary
-  //                   switch (summaries[i].summary) {
-  //                     case (#Essay(arr)) {
-  //                       // summaries[i] = ;
-  //                     };
-  //                     case (_) {};
-  //                   };
-  //                 };
-  //                 case (null) {};
-  //               };
-  //             }
-  //             //#Essay : ?Text;
-  //             // #MultipleChoice : ?Nat;
-  //             // #Checkbox : [Nat];
-  //             // #Range : ?Int64;
-  //           };
-  //         };
-  //       };
-  //     };
-  //     case (#err(error)) {
-  //       return #err(error);
-  //     };
-  //   };
-  // };
+          for (i in Iter.range(0, answers.size())) {
+            switch (answers[i]) {
+              case (#Essay(answer)) {
+                // unpack null
+                switch (answer) {
+                  case (?a) {
+                    // if not null, add to summary
+                    switch (summaries[i].summary) {
+                      case (#Essay(arr)) {
+                        summaries[i] := {
+                          question = summaries[i].question;
+                          summary = #Essay(Array.append(arr, [a]));
+                        };
+                      };
+                      case (_) {};
+                    };
+                  };
+                  case (null) {};
+                };
+              };
+              case (#MultipleChoice(answer)) {
+                // unpack null
+                switch (answer) {
+                  case (?a) {
+                    // if not null, add to summary
+                    switch (summaries[i].summary) {
+                      case (#FrequencyArray(arr)) {
+                        summaries[i] := {
+                          question = summaries[i].question;
+                          summary = #FrequencyArray(Array.mapEntries<Nat, Nat>(arr, func(x, index) {
+                            if(index == a) x + 1 else x;
+                          }));
+                        };
+                      };
+                      case (_) {};
+                    };
+                  };
+                  case (null) {};
+                };
+              };
+              case (#Checkbox(answer)) {
+                for (choice in answer.vals()) {
+                  switch (summaries[i].summary) {
+                    case (#FrequencyArray(arr)) {
+                      summaries[i] := {
+                          question = summaries[i].question;
+                          summary = #FrequencyArray(Array.mapEntries<Nat, Nat>(arr, func(x, index) {
+                            if(index == choice) x + 1 else x;
+                          }));
+                        };
+                    };
+                    case (_) {};
+                  };
+                };
+              };
+              case (#Range(answer)) {
+                // unpack null
+                switch (answer) {
+                  case (?a) {
+                    // if not null, add to summary
+                    switch (summaries[i].summary) {
+                      case (#FrequencyMap(map)) {
+                        summaries[i] := {
+                          question = summaries[i].question;
+                          summary = #FrequencyMap(Array.map<(Nat, Nat), (Nat, Nat)>(map, func((key, count)) {
+                            if(key == a) (key, count + 1) else (key, count);
+                          }));
+                        };
+                      };
+                      case (_) {};
+                    };
+                  };
+                  case (null) {};
+                };
+              };
+            };
+          };
+        };
+        return #ok(Array.freeze(summaries));
+      };
+      case (#err(error)) {
+        return #err(error);
+      };
+    };
+  };
 
   private func validateFormOwnership(formId : Text, caller : Principal) : Response<Form> {
     let form : ?Form = forms.get(formId);

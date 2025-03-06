@@ -1,7 +1,6 @@
 import Result "mo:base/Result";
 import Auth "canister:auth";
 import Forms "canister:forms";
-import Principal "mo:base/Principal";
 
 actor class Backend() {
   type Result<T, E> = Result.Result<T, E>;
@@ -47,5 +46,9 @@ actor class Backend() {
 
   public shared ({ caller }) func addFormResponse(formId : Text, answers : [Forms.AnswerType]) : async Response<()> {
     await Forms.addFormResponse(caller, formId, answers);
+  };
+
+  public composite query ({ caller }) func getFormResponseSummary(formId : Text) : async Response<[Forms.FormResponseSummary]> {
+    await Forms.getFormResponseSummary(caller, formId);
   };
 };
