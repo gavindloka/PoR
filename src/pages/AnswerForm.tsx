@@ -10,16 +10,28 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
-import { Backend, Response_4 } from '@/declarations/backend/backend.did';
+import { AnswerType, Backend, Response_1, Response_4 } from '@/declarations/backend/backend.did';
 import { useQueryCall, useUpdateCall } from '@ic-reactor/react';
 import { Checkbox } from '@radix-ui/react-checkbox';
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
+import { toast } from 'sonner';
 
 export default function AnswerForm() {
   const { id } = useParams();
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+
+  const {
+    loading: loadingUser,
+    data: rawUser,
+    refetch,
+  } = useQueryCall<Backend>({
+    functionName: 'getUser',
+  });
+
+  const user = rawUser as Response_1 | undefined;
 
   const { data, loading, error } = useQueryCall<Backend>({
     functionName: 'getForm',
@@ -27,11 +39,23 @@ export default function AnswerForm() {
   });
   const form = data as Response_4 | undefined;
 
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, boolean> = {};
+    questions.forEach((question, index) => {
+      if (question.isRequired && !formData[index]) {
+        newErrors[index] = true;
+      }
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const {
-    call,
+    call: addFormResponseCall,
     data: addResponseData,
     loading: loadingResponse,
-  } = useUpdateCall({
+    error: responseError,
+  } = useUpdateCall<Backend>({
     functionName: 'addFormResponse',
     args: [],
     onLoading: (loading) => console.log('Loading:', loading),
@@ -45,12 +69,69 @@ export default function AnswerForm() {
       [index]: value,
     });
   };
+
+  const prepareFormSubmission = (): AnswerType[] => {
+    const validationErrors: string[] = [];
+    return questions.map((question, index) => {
+      const value = formData[index];
   
+      if ('Essay' in question.questionType) {
+        return { 'Essay': value ? [value] : [] };
+        
+      } 
+      else if ('MultipleChoice' in question.questionType) {
+        return { 
+          'MultipleChoice': value !== undefined ? [BigInt(value)] : [] 
+        };
+      } 
+      else if ('Range' in question.questionType) {
+        return { 
+          'Range': value !== undefined ? [BigInt(value)] : [] 
+        };
+      } 
+      else if ('Checkbox' in question.questionType) {
+        const checkboxes = Array.isArray(value) 
+          ? value.map(v => BigInt(v)) 
+          : [];
+        return { 'Checkbox': checkboxes };
+      }
+      
+      return { 'Essay': [] };
+    });
+  };
+
   useEffect(() => {
     if (form && 'ok' in form) {
       console.log(form.ok);
     }
   }, [form]);
+
+  const handleSubmit = async (event?: React.FormEvent) => {
+    if (event) {
+      event.preventDefault();
+    }
+
+    // const answers: AnswerType[] = [
+    //   { 'Essay': ["halhalao"] },
+    //   { 'MultipleChoice': [2n] },
+    //   { 'Checkbox': [1n, 3n] },
+    //   {'Range':[2n]}
+    // ];
+  
+    if (!validateForm()) {
+      toast.error('Please fill all required fields.');
+      return;
+    }
+
+    const answers = prepareFormSubmission()
+    try {
+      await addFormResponseCall([
+        id ?? '', answers
+      ]);
+    } catch (error) {
+      console.error(error)
+    }
+  };
 
   if (!id) {
     return <div>Form id not found</div>;
@@ -66,7 +147,12 @@ export default function AnswerForm() {
 
   const currForm = form.ok;
   const questions = currForm.questions;
-
+  // const handleSendICP = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   console.log('Sending ICPPP', data);
+  //   console.log('MEMOOOO', new TextEncoder().encode(currForm.id));
+  //   call();
+  // };
 
   return (
     <>
@@ -92,12 +178,17 @@ export default function AnswerForm() {
                     <span className="text-destructive ml-1">*</span>
                   )}
                 </Label>
+                {errors[index] && (
+                <p className="text-red-500 text-sm">This field is required.</p>
+              )}
               </div>
 
               {'Essay' in question.questionType && (
                 <Textarea
                   placeholder="Your answer"
                   className="w-full"
+                  value={formData[index] || ''}
+                  onChange={(e) => handleInputChange(index, e.target.value)}
                   required={question.isRequired}
                 />
               )}
@@ -108,16 +199,23 @@ export default function AnswerForm() {
                     min={Number(question.questionType.Range.minRange)}
                     max={Number(question.questionType.Range.maxRange)}
                     step={1}
+                    onValueChange={(value) =>
+                      handleInputChange(index, value[0])
+                    }
                     className="w-full"
                   />
                   <span className="text-sm font-medium text-gray-700">
                     Selected Value:{' '}
+                    {formData[index] ??
+                      Number(question.questionType.Range.minRange)}
                   </span>
                 </div>
               )}
 
               {'MultipleChoice' in question.questionType && (
                 <RadioGroup
+                  value={formData[index] || ''}
+                  onValueChange={(value) => handleInputChange(index, value)}
                   required={question.isRequired}
                   className="space-y-2"
                 >
@@ -145,6 +243,15 @@ export default function AnswerForm() {
                       <Checkbox
                         id={`${index}-${idx}`}
                         className="w-5 h-5 border border-gray-300 rounded-md bg-white data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 flex items-center justify-center"
+                        onCheckedChange={(checked) => {
+                          const currentValues = formData[index] || [];
+                          const newValues = checked
+                            ? [...currentValues, idx]
+                            : currentValues.filter(
+                                (id: string) => parseInt(id) !== idx,
+                              );
+                          handleInputChange(index, newValues);
+                        }}
                       >
                         <svg
                           className="w-4 h-4 text-white hidden data-[state=checked]:block"
@@ -163,13 +270,17 @@ export default function AnswerForm() {
                   ))}
                 </div>
               )}
-              
             </CardContent>
           </Card>
         ))}
 
         <div className="flex justify-between">
-          <Button className="bg-purple-600 hover:bg-purple-700">Submit</Button>
+          <Button
+            className="bg-purple-600 hover:bg-purple-700"
+            onClick={() => handleSubmit()}
+          >
+            Submit
+          </Button>
         </div>
       </div>
     </>
