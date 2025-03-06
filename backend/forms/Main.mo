@@ -14,6 +14,7 @@ import Char "mo:base/Char";
 import Nat32 "mo:base/Nat32";
 import Nat8 "mo:base/Nat8";
 import Auth "canister:auth";
+import Ledger "canister:icp_ledger_canister_backend";
 import ICPIndex "canister:icp_index_canister";
 import UUID "mo:uuid/UUID";
 import Source "mo:uuid/async/SourceV4";
@@ -333,6 +334,13 @@ actor class Forms() {
           };
         };
 
+        let sendResult = await Ledger.sendICP(Principal.toText(caller), f.metadata.rewardAmount);
+        switch (sendResult) {
+          case (#err(e)) {
+            return #err("ICP transfer failed: " # e);
+          };
+          case (#ok(_)) {};
+        };
         let newForm : Form = {
           id = f.id;
           metadata = f.metadata;

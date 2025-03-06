@@ -42,5 +42,30 @@ actor Ledger{
     }catch(error){
       return #err(Error.message(error));
     };
-  }
+  };
+
+  public func sendICP2(from: Text, recipient: Text, amt: Nat) : async Response<()> {
+    try {
+        let transferResult = await ICPLledger.icrc2_transfer_from({
+            amount = amt;
+            fee = null;
+            memo = null;
+            from = { owner = Principal.fromText(from); subaccount = null };  // Sender
+            spender_subaccount = null;  // Ensure this is correctly set
+            to = { owner = Principal.fromText(recipient); subaccount = null };  // Recipient
+            created_at_time = null;
+        });
+
+        switch (transferResult) {
+            case (#Ok(_)) { return #ok(); };
+            case (#Err(error)) {
+                return #err("Error in transferring tokens: " # debug_show(error));  // Improved error handling
+            };
+        };
+    } catch (error) {
+        return #err("Caught exception: " # Error.message(error));  // Catch runtime errors
+    };
+  };
+
+
 };

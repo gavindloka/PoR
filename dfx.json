@@ -39,7 +39,11 @@
           "name": "candid:service"
         }
       ],
-      "dependencies": ["icp_index_canister", "icp_ledger_canister"],
+      "dependencies": [
+        "icp_index_canister",
+        "icp_ledger_canister",
+        "icp_ledger_canister_backend"
+      ],
       "type": "motoko",
       "main": "backend/forms/Main.mo",
       "declarations": {

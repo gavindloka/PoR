@@ -198,7 +198,7 @@ const HomePage = () => {
           <motion.div className="mt-8 flex gap-5" variants={itemVariants}>
             <Button
               className=" font-bold rounded-lg bg-purple-700 w-32 h-11 hover:border-0 hover:bg-purple-800 hover:scale-105 transition-all"
-              onClick={() => navigate('/forms/new')}
+              onClick={() => navigate('/forms')}
             >
               Design a Survey
             </Button>
@@ -431,7 +431,10 @@ const HomePage = () => {
             transition={{ duration: 0.8, delay: 0.5 }}
             viewport={{ once: true, amount: 0.3 }}
           >
-            <button className="relative inline-flex h-12 overflow-hidden rounded-2xl p-[3px] focus:outline-none" onClick={()=>navigate("/browse")}>
+            <button
+              className="relative inline-flex h-12 overflow-hidden rounded-2xl p-[3px] focus:outline-none"
+              onClick={() => navigate('/browse')}
+            >
               <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
               <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-xl bg-white px-3 py-1 font-satoshi text-lg text-purple-700 backdrop-blur-3xl">
                 Get Started

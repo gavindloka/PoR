@@ -61,7 +61,7 @@ export type Backend = typeof backend;
 
 export default function FormPreview({
   currentForm,
-  callPublish
+  callPublish,
 }: {
   currentForm: LocalForm;
   callPublish: (newMetadata: FormMetadata) => void;
@@ -123,14 +123,14 @@ export default function FormPreview({
     try {
       const response = await call();
       if (!response) {
-        toast.error("Unknown error occurred");
+        toast.error('Unknown error occurred');
         return;
       }
       if ('err' in response) {
         toast.error(response.err as string);
         return;
       }
-      console.log("ICP successfully sent");
+      console.log('ICP successfully sent');
       callPublish(localMetadata);
     } catch (error) {
       console.error(error);
@@ -219,7 +219,7 @@ export default function FormPreview({
                 <Slider
                   value={[
                     formData[index] ??
-                    Number(question.questionType.Range.minRange),
+                      Number(question.questionType.Range.minRange),
                   ]}
                   min={Number(question.questionType.Range.minRange)}
                   max={Number(question.questionType.Range.maxRange)}
@@ -271,8 +271,8 @@ export default function FormPreview({
                         const newValues = checked
                           ? [...currentValues, idx]
                           : currentValues.filter(
-                            (id: string) => parseInt(id) !== idx,
-                          );
+                              (id: string) => parseInt(id) !== idx,
+                            );
                         handleInputChange(index, newValues);
                       }}
                       className="w-5 h-5 border border-gray-300 rounded-md bg-white data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 flex items-center justify-center"
@@ -364,7 +364,7 @@ export default function FormPreview({
                                         className={cn(
                                           'w-[340px] justify-start text-left font-normal',
                                           !localMetadata.deadline[0] &&
-                                          'text-muted-foreground',
+                                            'text-muted-foreground',
                                         )}
                                       >
                                         <CalendarIcon />
@@ -391,10 +391,10 @@ export default function FormPreview({
                                         selected={
                                           localMetadata.deadline[0]
                                             ? new Date(
-                                              Number(
-                                                localMetadata.deadline[0],
-                                              ) / 1000,
-                                            )
+                                                Number(
+                                                  localMetadata.deadline[0],
+                                                ) / 1000,
+                                              )
                                             : undefined
                                         }
                                         onSelect={(date) => {
@@ -619,7 +619,7 @@ export default function FormPreview({
                             if (localMetadata.rewardAmount > 0) {
                               const maxRespondents = BigInt(
                                 localMetadata.maxRewardPool /
-                                localMetadata.rewardAmount,
+                                  localMetadata.rewardAmount,
                               );
 
                               localMetadata.maxRespondent = maxRespondents;
@@ -657,7 +657,7 @@ export default function FormPreview({
                             if (localMetadata.rewardAmount > 0) {
                               const maxRespondents = BigInt(
                                 localMetadata.maxRewardPool /
-                                localMetadata.rewardAmount,
+                                  localMetadata.rewardAmount,
                               );
 
                               localMetadata.maxRespondent = maxRespondents;
