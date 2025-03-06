@@ -36,29 +36,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Backend } from '@/declarations/backend/backend.did';
+import type { FormMetadata } from '@/declarations/backend/backend.did.d.ts';
 import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
 import { cn } from '@/lib/utils';
 import { Principal as DFinityPrincipal } from '@dfinity/principal';
-import { useQueryCall, useUserPrincipal } from '@ic-reactor/react';
+import {
+  useQueryCall,
+  useUpdateCall,
+  useUserPrincipal,
+} from '@ic-reactor/react';
 import { format } from 'date-fns';
 import { LocalForm } from './FormBuilder';
 import { Calendar } from './ui/calendar';
 import { CountryDropdown } from './ui/country-dropdown';
 import { OccupationDropdown } from './ui/occupation-dropdown';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { cn } from '@/lib/utils';
-import { Calendar } from './ui/calendar';
-import { format } from 'date-fns';
-import {
-  useQueryCall,
-  useUpdateCall,
-  useUserPrincipal,
-} from '@ic-reactor/react';
-import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
-import { Backend } from '@/declarations/backend/backend.did';
 import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
-import type { FormMetadata } from '@/declarations/backend/backend.did.d.ts';
 
 export type ICPLedger = typeof icp_ledger_canister;
 
