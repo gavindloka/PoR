@@ -1,28 +1,28 @@
-import { useEffect, useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { PlusCircle, Trash2, Copy, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import QuestionField from './QuestionField';
-import FormPreview from './FormPreview';
-import type {
-  Backend,
-  Form,
-  FormMetadata,
-  Question,
-  FormResponse,
-} from '../declarations/backend/backend.did.d.ts';
-import { Principal } from '@ic-reactor/react/dist/types';
+import { Textarea } from '@/components/ui/textarea';
+import { idlFactory } from '@/declarations/icp_ledger_canister';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import {
   ActorProvider,
   CandidAdapterProvider,
   useUpdateCall,
 } from '@ic-reactor/react';
+import { Principal } from '@ic-reactor/react/dist/types';
+import { Copy, GripVertical, PlusCircle, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { idlFactory } from '@/declarations/icp_ledger_canister';
+import type {
+  Backend,
+  Form,
+  FormMetadata,
+  FormResponse,
+  Question,
+} from '@/declarations/backend/backend.did.d.ts';
+import FormPreview from './FormPreview';
+import QuestionField from './QuestionField';
 
 type Props = {
   originalForm: Form;
@@ -39,6 +39,8 @@ export type LocalForm = {
 
 export type WithId<T> = T & { _id: string };
 
+// give forms a stable key for front-end rendering
+// react needs stable keys for each list item for the best rendering performance
 export function giveId<T extends object>(any: T): WithId<T> {
   return { ...any, _id: crypto.randomUUID() };
 }
@@ -55,7 +57,7 @@ function useDebouncedEffect(
 ) {
   useEffect(() => {
     const handler = setTimeout(callback, delay);
-    return () => clearTimeout(handler); // Clear timeout if dependencies change before delay
+    return () => clearTimeout(handler);
   }, dependencies);
 }
 
@@ -66,6 +68,7 @@ export default function FormBuilder({ originalForm }: Props) {
   };
   const [currentForm, setCurrentForm] = useState(form);
   const [activeTab, setActiveTab] = useState('edit');
+
   const { call: updateMetadata } = useUpdateCall<Backend>({
     functionName: 'updateFormMetadata',
   });
@@ -261,7 +264,7 @@ export default function FormBuilder({ originalForm }: Props) {
               canisterId={'ryjl3-tyaaa-aaaaa-aaaba-cai'}
               idlFactory={idlFactory}
             >
-              <FormPreview {...{ currentForm, setCurrentForm }} />
+              <FormPreview {...{ currentForm }} />
             </ActorProvider>
           </CandidAdapterProvider>
         </TabsContent>

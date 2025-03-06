@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,62 +9,62 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
-import { Checkbox } from '@radix-ui/react-checkbox';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon } from 'lucide-react';
 import {
-  Form as MainForm,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
+  Form as MainForm
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Checkbox } from '@radix-ui/react-checkbox';
+import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
+import { CalendarIcon } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
-import { LocalForm } from './FormBuilder';
-import { Slider } from './ui/slider';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  DialogTitle
 } from '@/components/ui/dialog';
+import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
+import { cn } from '@/lib/utils';
 import { Principal as DFinityPrincipal } from '@dfinity/principal';
-import { User } from 'lucide-react';
-import { Separator } from './ui/separator';
+import { useQueryCall, useUserPrincipal } from '@ic-reactor/react';
+import { format } from 'date-fns';
+import { LocalForm } from './FormBuilder';
+import { Calendar } from './ui/calendar';
 import { CountryDropdown } from './ui/country-dropdown';
 import { OccupationDropdown } from './ui/occupation-dropdown';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { cn } from '@/lib/utils';
-import { Calendar } from './ui/calendar';
-import { format } from 'date-fns';
-import { useQueryCall, useUserPrincipal } from '@ic-reactor/react';
-import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
+import { Separator } from './ui/separator';
+import { Slider } from './ui/slider';
+import type {
+  FormMetadata
+} from '@/declarations/backend/backend.did.d.ts';
+
 export type ICPLedger = typeof icp_ledger_canister;
+
 export default function FormPreview({
   currentForm,
-  setCurrentForm,
 }: {
   currentForm: LocalForm;
-  setCurrentForm: (form: LocalForm) => void;
 }) {
   const questions = currentForm.questions;
-  const metadata = currentForm.metadata;
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submitted, setSubmitted] = useState(false);
-  const [date, setDate] = React.useState<Date>();
-  const [open, setOpen] = useState(false);
+  const [isPublishModalOpen, setPublishModalOpen] = useState(false);
+  // we save this locally to prevent rerenders from changing state passed down from a parent component
+  const [localMetadata, setLocalMetadata] = useState<FormMetadata>({ ...currentForm.metadata });
   const handleInputChange = (index: number, value: any) => {
     setFormData({
       ...formData,
@@ -75,8 +75,9 @@ export default function FormPreview({
   const handlePublish = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form data:', formData);
-    setOpen(true);
+    setPublishModalOpen(true);
   };
+
   function hashMemo(str: String) {
     let hash = 0n;
     for (let i = 0; i < str.length; i++) {
@@ -110,7 +111,6 @@ export default function FormPreview({
   const handleSendICP = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Sending ICPPP', data);
-    console.log('MEMOOOO', new TextEncoder().encode(currentForm.id));
     call();
   };
 
@@ -163,9 +163,9 @@ export default function FormPreview({
     <>
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-2xl">{metadata.title}</CardTitle>
-          {metadata.description && (
-            <CardDescription>{metadata.description}</CardDescription>
+          <CardTitle className="text-2xl">{localMetadata.title}</CardTitle>
+          {localMetadata.description && (
+            <CardDescription>{localMetadata.description}</CardDescription>
           )}
         </CardHeader>
       </Card>
@@ -196,7 +196,7 @@ export default function FormPreview({
                 <Slider
                   value={[
                     formData[index] ??
-                      Number(question.questionType.Range.minRange),
+                    Number(question.questionType.Range.minRange),
                   ]}
                   min={Number(question.questionType.Range.minRange)}
                   max={Number(question.questionType.Range.maxRange)}
@@ -248,8 +248,8 @@ export default function FormPreview({
                         const newValues = checked
                           ? [...currentValues, idx]
                           : currentValues.filter(
-                              (id: string) => parseInt(id) !== idx,
-                            );
+                            (id: string) => parseInt(id) !== idx,
+                          );
                         handleInputChange(index, newValues);
                       }}
                       className="w-5 h-5 border border-gray-300 rounded-md bg-white data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 flex items-center justify-center"
@@ -289,9 +289,9 @@ export default function FormPreview({
 
       {/* Modal */}
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={isPublishModalOpen} onOpenChange={setPublishModalOpen}>
         <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden">
-          <Tabs defaultValue="requirements" className="w-full">
+          <Tabs className="w-full" defaultValue='requirements'>
             <DialogHeader className="px-6 pt-6 pb-2">
               <div className="flex items-center justify-between">
                 <DialogTitle className="text-2xl font-bold">
@@ -302,7 +302,7 @@ export default function FormPreview({
                 Configure your form requirements and set up rewards for
                 respondents.
               </DialogDescription>
-              <TabsList className="p-5 ">
+              <TabsList className="p-5" >
                 <TabsTrigger value="requirements">Requirements</TabsTrigger>
                 <TabsTrigger value="rewards">Rewards</TabsTrigger>
               </TabsList>
@@ -340,15 +340,15 @@ export default function FormPreview({
                                         variant={'outline'}
                                         className={cn(
                                           'w-[340px] justify-start text-left font-normal',
-                                          !date && 'text-muted-foreground',
+                                          !localMetadata.deadline[0] && 'text-muted-foreground',
                                         )}
                                       >
                                         <CalendarIcon />
-                                        {currentForm.metadata.deadline[0] ? (
+                                        {localMetadata.deadline[0] ? (
                                           format(
                                             new Date(
                                               Number(
-                                                currentForm.metadata
+                                                localMetadata
                                                   .deadline[0],
                                               ) / 1000,
                                             ),
@@ -366,13 +366,13 @@ export default function FormPreview({
                                       <Calendar
                                         mode="single"
                                         selected={
-                                          currentForm.metadata.deadline[0]
+                                          localMetadata.deadline[0]
                                             ? new Date(
-                                                Number(
-                                                  currentForm.metadata
-                                                    .deadline[0],
-                                                ) / 1000,
-                                              )
+                                              Number(
+                                                localMetadata
+                                                  .deadline[0],
+                                              ) / 1000,
+                                            )
                                             : undefined
                                         }
                                         onSelect={(date) => {
@@ -380,13 +380,13 @@ export default function FormPreview({
                                             const input =
                                               date?.getTime() * 1000;
 
-                                            currentForm.metadata.deadline = [
+                                            localMetadata.deadline = [
                                               BigInt(input),
                                             ];
                                           } else {
-                                            currentForm.metadata.deadline = [];
+                                            localMetadata.deadline = [];
                                           }
-                                          setCurrentForm({ ...currentForm });
+                                          setLocalMetadata({ ...localMetadata });
                                         }}
                                         initialFocus
                                       />
@@ -429,11 +429,11 @@ export default function FormPreview({
                                       placeholder="ex. At least 20 y.o "
                                       className="mt-1"
                                       type="number"
-                                      value={currentForm.metadata.minAge[0]?.toString()}
+                                      value={localMetadata.minAge[0]?.toString()}
                                       onChange={(e) => {
                                         const input = BigInt(e.target.value);
-                                        currentForm.metadata.minAge = [input];
-                                        setCurrentForm({ ...currentForm });
+                                        localMetadata.minAge = [input];
+                                        setLocalMetadata({ ...localMetadata });
                                       }}
                                     />
                                   </div>
@@ -446,11 +446,11 @@ export default function FormPreview({
                                       placeholder="ex. Maximum 40 y.o "
                                       className="mt-1"
                                       type="number"
-                                      value={currentForm.metadata.maxAge[0]?.toString()}
+                                      value={localMetadata.maxAge[0]?.toString()}
                                       onChange={(e) => {
                                         const input = BigInt(e.target.value);
-                                        currentForm.metadata.maxAge = [input];
-                                        setCurrentForm({ ...currentForm });
+                                        localMetadata.maxAge = [input];
+                                        setLocalMetadata({ ...localMetadata });
                                       }}
                                     />
                                   </div>
@@ -492,13 +492,13 @@ export default function FormPreview({
                                     <FormControl>
                                       <CountryDropdown
                                         placeholder="Select your country"
-                                        value={currentForm.metadata.country[0]?.toString()}
+                                        value={localMetadata.country[0]?.toString()}
                                         onChange={(country) => {
                                           const input = country.alpha3;
-                                          currentForm.metadata.country = [
+                                          localMetadata.country = [
                                             input,
                                           ];
-                                          setCurrentForm({ ...currentForm });
+                                          setLocalMetadata({ ...localMetadata });
                                         }}
                                       />
                                     </FormControl>
@@ -513,11 +513,11 @@ export default function FormPreview({
                                     <Input
                                       id="city"
                                       placeholder="Enter city"
-                                      value={currentForm.metadata.city[0]?.toString()}
+                                      value={localMetadata.city[0]?.toString()}
                                       onChange={(e) => {
                                         const input = e.target.value;
-                                        currentForm.metadata.city = [input];
-                                        setCurrentForm({ ...currentForm });
+                                        localMetadata.city = [input];
+                                        setLocalMetadata({ ...localMetadata });
                                       }}
                                     />
                                   </div>
@@ -532,14 +532,14 @@ export default function FormPreview({
                                   </Label>
                                   <FormControl>
                                     <OccupationDropdown
-                                      value={currentForm.metadata.occupation[0]?.toString()}
+                                      value={localMetadata.occupation[0]?.toString()}
                                       onChange={(occupation) => {
                                         const input = occupation.id;
                                         currentForm;
-                                        currentForm.metadata.occupation = [
+                                        localMetadata.occupation = [
                                           input,
                                         ];
-                                        setCurrentForm({ ...currentForm });
+                                        setLocalMetadata({ ...localMetadata });
                                       }}
                                     />
                                   </FormControl>
@@ -574,28 +574,30 @@ export default function FormPreview({
                           type="number"
                           placeholder="0.01"
                           className="mt-1"
-                          value={Number(currentForm.metadata.rewardAmount)}
+                          value={(Number(localMetadata.rewardAmount) / 100_000_000).toString()}
                           min={0.01}
                           onChange={(e) => {
-                            let input = parseFloat(e.target.value);
+                            let input = parseFloat(e.target.value) * 100_000_000;
 
-                            if (input < 0.01) {
-                              input = 0.01;
+                            if (isNaN(input)) {
+                              input = 0;
                             }
 
-                            currentForm.metadata.rewardAmount = BigInt(
-                              Math.round(input * 100),
-                            );
-                            setCurrentForm({ ...currentForm });
-                            if (currentForm.metadata.rewardAmount > 0) {
+                            if (input < 1_000_000) {
+                              input = 1_000_000;
+                            }
+
+                            localMetadata.rewardAmount = BigInt(Math.round(input));
+                            setLocalMetadata({ ...localMetadata });
+                            if (localMetadata.rewardAmount > 0) {
                               const maxRespondents = BigInt(
-                                currentForm.metadata.maxRewardPool /
-                                  currentForm.metadata.rewardAmount,
+                                localMetadata.maxRewardPool /
+                                localMetadata.rewardAmount,
                               );
 
-                              currentForm.metadata.maxRespondent =
+                              localMetadata.maxRespondent =
                                 maxRespondents;
-                              setCurrentForm({ ...currentForm });
+                              setLocalMetadata({ ...localMetadata });
                             }
                           }}
                         />
@@ -608,30 +610,28 @@ export default function FormPreview({
                           id="reward-pool"
                           type="number"
                           placeholder="0.1"
-                          value={Number(currentForm.metadata.maxRewardPool)}
+                          className="mt-1"
+                          value={(Number(localMetadata.maxRewardPool) / 100_000_000).toString()}
                           min={currentForm.questions.length * 0.1}
                           step={0.1}
-                          className="mt-1"
                           onChange={(e) => {
-                            let input = parseFloat(e.target.value);
+                            let input = parseFloat(e.target.value) * 100_000_000;
 
-                            if (input < 0.1) {
-                              input = 0.1;
+                            if (input < 1_000_000) {
+                              input = 1_000_000;
                             }
 
-                            currentForm.metadata.maxRewardPool = BigInt(
-                              Math.round(input * 100),
-                            );
-                            setCurrentForm({ ...currentForm });
-                            if (currentForm.metadata.rewardAmount > 0) {
+                            localMetadata.maxRewardPool = BigInt(Math.round(input));
+                            setLocalMetadata({ ...localMetadata });
+                            if (localMetadata.rewardAmount > 0) {
                               const maxRespondents = BigInt(
-                                currentForm.metadata.maxRewardPool /
-                                  currentForm.metadata.rewardAmount,
+                                localMetadata.maxRewardPool /
+                                localMetadata.rewardAmount,
                               );
 
-                              currentForm.metadata.maxRespondent =
+                              localMetadata.maxRespondent =
                                 maxRespondents;
-                              setCurrentForm({ ...currentForm });
+                              setLocalMetadata({ ...localMetadata });
                             }
                           }}
                         />
@@ -646,7 +646,7 @@ export default function FormPreview({
                           type="number"
                           placeholder="1000"
                           className="mt-1"
-                          value={Number(currentForm.metadata.maxRespondent)}
+                          value={Number(localMetadata.maxRespondent)}
                         />
                       </div>
                     </div>
@@ -656,7 +656,7 @@ export default function FormPreview({
             </div>
 
             <DialogFooter className="px-6 py-4 border-t">
-              <Button variant="outline" onClick={() => setOpen(false)}>
+              <Button variant="outline" onClick={() => setPublishModalOpen(false)}>
                 Cancel
               </Button>
               <Button onClick={handleSendICP}>Publish Form</Button>{' '}
