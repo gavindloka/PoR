@@ -8,7 +8,13 @@ import TrieMap "mo:base/TrieMap";
 import Bool "mo:base/Bool";
 import Iter "mo:base/Iter";
 import Option "mo:base/Option";
+import Float "mo:base/Float";
+import Blob "mo:base/Blob";
+import Char "mo:base/Char";
+import Nat32 "mo:base/Nat32";
+import Nat8 "mo:base/Nat8";
 import Auth "canister:auth";
+import ICPIndex "canister:icp_index_canister";
 import UUID "mo:uuid/UUID";
 import Source "mo:uuid/async/SourceV4";
 
@@ -494,4 +500,111 @@ actor class Forms() {
       case (_) { return #err("Form not found") };
     };
   };
+
+  public func hashMemo(formId: Text) : async Blob {
+    var hash : Nat = 0;
+    let prime : Nat = 31;
+    let modValue : Nat = 2 ** 64;
+
+    for (c in Text.toIter(formId)) {  
+        hash := (hash * prime + Nat32.toNat(Char.toNat32(c))) % modValue;
+    };
+
+        // Convert Nat to byte array (Uint8Array equivalent)
+    var bytes = Array.init<Nat8>(8, 0); 
+    var temp = hash;
+    for (i in Iter.range(0, 7)) {
+        bytes[i] := Nat8.fromNat(temp % 256);  // Use `mod 256` instead of `& 0xFF`
+        temp := temp / 256;  // Use integer division instead of `>>`
+    };
+
+    Blob.fromArray(Array.freeze(bytes));
+  };
+
+public shared func changeFormPublish(caller: Principal, formId: Text) : async Response<Bool> {
+    switch (forms.get(formId)) {
+        case (?form) {  
+            try {
+                let results = await ICPIndex.get_account_transactions({
+                    max_results = 1;
+                    start = null;
+                    account = {
+                        owner = caller;
+                        subaccount = null;
+                    };
+                });
+
+                switch (results) {
+                    case (#Ok(txData)) {
+                        if (txData.transactions.size() == 0) {
+                            return #err("No transactions found");
+                        };
+
+                        let latestTx = txData.transactions[0];
+
+                        switch (latestTx.transaction.operation) {
+                            case (#Transfer(transferData)) {
+                                switch (latestTx.transaction.icrc1_memo) {
+                                    case (?memoBytes) {
+                                        let memoHash = memoBytes;
+                                        let expectedHash = await hashMemo(formId);
+
+                                        if (memoHash == expectedHash) {
+                                            let newForm : Form = {
+                                                id = form.id;
+                                                createdAt = form.createdAt;
+                                                creator = form.creator;
+                                                metadata = {
+                                                    published = true;
+                                                    title = form.metadata.title;
+                                                    deadline = form.metadata.deadline;
+                                                    minAge = form.metadata.minAge;
+                                                    maxAge = form.metadata.maxAge;
+                                                    country = form.metadata.country;
+                                                    city = form.metadata.city;
+                                                    occupation = form.metadata.occupation;
+                                                    description = form.metadata.description;
+                                                    categories = form.metadata.categories;
+                                                    maxRespondent = form.metadata.maxRespondent;
+                                                    maxRewardPool = form.metadata.maxRewardPool;
+                                                    rewardAmount = form.metadata.rewardAmount;
+                                                };
+                                                questions = form.questions;
+                                                responses = form.responses;
+                                            };
+
+                                            forms.put(formId, newForm);
+                                            return #ok(true); // Payment matches the form ID
+                                        } else {
+                                            return #err("Payment memo does not match form ID");
+                                        };
+                                    };
+                                    case (null) {
+                                        return #err("No memo found in transaction");
+                                    };
+                                };
+                            };
+                            case (_) {
+                                return #err("Latest transaction is not a payment");
+                            };
+                        };
+                    };
+                    case (#Err(err)) {
+                        return #err("Failed to get transactions: " # err.message);
+                    };
+                };
+            }catch (error) {
+                return #err("Error retrieving transactions");
+            };
+        };
+        case (null) {
+            return #err("Form not found");
+        };
+    };
+  };
+
+
+
+
+
 };

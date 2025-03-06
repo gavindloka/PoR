@@ -18,7 +18,28 @@
         "node_compatibility": true
       }
     },
+    "icp_index_canister": {
+      "metadata": [
+        {
+          "name": "candid:service"
+        }
+      ],
+      "type": "custom",
+      "candid": "icp_index_canister/index.did",
+      "wasm": "icp_index_canister/ic-icp-index-canister.wasm.gz",
+      "remote": {
+        "id": {
+          "ic": "qhbym-qaaaa-aaaaa-aaafq-cai"
+        }
+      }
+    },
     "forms": {
+      "metadata": [
+        {
+          "name": "candid:service"
+        }
+      ],
+      "dependencies": ["icp_index_canister", "icp_ledger_canister"],
       "type": "motoko",
       "main": "backend/forms/Main.mo",
       "declarations": {
@@ -26,21 +47,16 @@
       }
     },
     "backend": {
-      "dependencies": ["forms", "auth"],
+      "dependencies": [
+        "forms",
+        "auth",
+        "icp_index_canister",
+        "icp_ledger_canister"
+      ],
       "type": "motoko",
       "main": "backend/Backend.mo",
       "declarations": {
         "node_compatibility": true
-      }
-    },
-    "icp_index_canister": {
-      "type": "custom",
-      "candid": "https://raw.githubusercontent.com/dfinity/ic/2f02a660f6f17b5a78c13d9b372f74c8228f79b8/rs/ledger_suite/icp/index/index.did",
-      "wasm": "https://download.dfinity.systems/ic/2f02a660f6f17b5a78c13d9b372f74c8228f79b8/canisters/ic-icp-index-canister.wasm.gz",
-      "remote": {
-        "id": {
-          "ic": "qhbym-qaaaa-aaaaa-aaafq-cai"
-        }
       }
     },
     "icp_ledger_canister": {

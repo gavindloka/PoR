@@ -14,7 +14,7 @@ import {
   FormField,
   FormItem,
   FormMessage,
-  Form as MainForm
+  Form as MainForm,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,7 +34,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
 import { cn } from '@/lib/utils';
@@ -46,11 +46,19 @@ import { Calendar } from './ui/calendar';
 import { CountryDropdown } from './ui/country-dropdown';
 import { OccupationDropdown } from './ui/occupation-dropdown';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { cn } from '@/lib/utils';
+import { Calendar } from './ui/calendar';
+import { format } from 'date-fns';
+import {
+  useQueryCall,
+  useUpdateCall,
+  useUserPrincipal,
+} from '@ic-reactor/react';
+import { icp_ledger_canister } from '@/declarations/icp_ledger_canister';
+import { Backend } from '@/declarations/backend/backend.did';
 import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
-import type {
-  FormMetadata
-} from '@/declarations/backend/backend.did.d.ts';
+import type { FormMetadata } from '@/declarations/backend/backend.did.d.ts';
 
 export type ICPLedger = typeof icp_ledger_canister;
 
@@ -64,7 +72,9 @@ export default function FormPreview({
   const [submitted, setSubmitted] = useState(false);
   const [isPublishModalOpen, setPublishModalOpen] = useState(false);
   // we save this locally to prevent rerenders from changing state passed down from a parent component
-  const [localMetadata, setLocalMetadata] = useState<FormMetadata>({ ...currentForm.metadata });
+  const [localMetadata, setLocalMetadata] = useState<FormMetadata>({
+    ...currentForm.metadata,
+  });
   const handleInputChange = (index: number, value: any) => {
     setFormData({
       ...formData,
@@ -79,12 +89,14 @@ export default function FormPreview({
   };
 
   function hashMemo(str: String) {
+    console.log('Generate memo: ', str);
     let hash = 0n;
     for (let i = 0; i < str.length; i++) {
       hash = (hash * 31n + BigInt(str.charCodeAt(i))) % 2n ** 64n; // Keep within 64-bit
     }
     return new Uint8Array(new BigUint64Array([hash]).buffer);
   }
+
   const principal = useUserPrincipal() as DFinityPrincipal;
   const { call, data, error } = useQueryCall<ICPLedger, 'icrc2_transfer_from'>({
     functionName: 'icrc2_transfer_from',
@@ -107,11 +119,24 @@ export default function FormPreview({
       },
     ],
   });
+  const {
+    call: changePublish,
+    data: dataPublish,
+    loading: dataLoading,
+    error: dataError,
+  } = useUpdateCall<Backend>({
+    functionName: 'changeFormPublish',
+    onLoading: (loading) => console.log('Loading:', loading),
+    onError: (error) => console.error('Error:', error),
+    onSuccess: (data) => console.log('Success:', data),
+  });
 
   const handleSendICP = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Sending ICPPP', data);
     call();
+    changePublish([currentForm.id]);
+    console.log(currentForm.metadata.published);
   };
 
   const formSchema = z.object({
@@ -196,7 +221,7 @@ export default function FormPreview({
                 <Slider
                   value={[
                     formData[index] ??
-                    Number(question.questionType.Range.minRange),
+                      Number(question.questionType.Range.minRange),
                   ]}
                   min={Number(question.questionType.Range.minRange)}
                   max={Number(question.questionType.Range.maxRange)}
@@ -248,8 +273,8 @@ export default function FormPreview({
                         const newValues = checked
                           ? [...currentValues, idx]
                           : currentValues.filter(
-                            (id: string) => parseInt(id) !== idx,
-                          );
+                              (id: string) => parseInt(id) !== idx,
+                            );
                         handleInputChange(index, newValues);
                       }}
                       className="w-5 h-5 border border-gray-300 rounded-md bg-white data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500 flex items-center justify-center"
@@ -291,7 +316,7 @@ export default function FormPreview({
 
       <Dialog open={isPublishModalOpen} onOpenChange={setPublishModalOpen}>
         <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden">
-          <Tabs className="w-full" defaultValue='requirements'>
+          <Tabs className="w-full" defaultValue="requirements">
             <DialogHeader className="px-6 pt-6 pb-2">
               <div className="flex items-center justify-between">
                 <DialogTitle className="text-2xl font-bold">
@@ -302,7 +327,7 @@ export default function FormPreview({
                 Configure your form requirements and set up rewards for
                 respondents.
               </DialogDescription>
-              <TabsList className="p-5" >
+              <TabsList className="p-5">
                 <TabsTrigger value="requirements">Requirements</TabsTrigger>
                 <TabsTrigger value="rewards">Rewards</TabsTrigger>
               </TabsList>
@@ -340,7 +365,8 @@ export default function FormPreview({
                                         variant={'outline'}
                                         className={cn(
                                           'w-[340px] justify-start text-left font-normal',
-                                          !localMetadata.deadline[0] && 'text-muted-foreground',
+                                          !localMetadata.deadline[0] &&
+                                            'text-muted-foreground',
                                         )}
                                       >
                                         <CalendarIcon />
@@ -348,8 +374,7 @@ export default function FormPreview({
                                           format(
                                             new Date(
                                               Number(
-                                                localMetadata
-                                                  .deadline[0],
+                                                localMetadata.deadline[0],
                                               ) / 1000,
                                             ),
                                             'PPP',
@@ -368,11 +393,10 @@ export default function FormPreview({
                                         selected={
                                           localMetadata.deadline[0]
                                             ? new Date(
-                                              Number(
-                                                localMetadata
-                                                  .deadline[0],
-                                              ) / 1000,
-                                            )
+                                                Number(
+                                                  localMetadata.deadline[0],
+                                                ) / 1000,
+                                              )
                                             : undefined
                                         }
                                         onSelect={(date) => {
@@ -386,7 +410,9 @@ export default function FormPreview({
                                           } else {
                                             localMetadata.deadline = [];
                                           }
-                                          setLocalMetadata({ ...localMetadata });
+                                          setLocalMetadata({
+                                            ...localMetadata,
+                                          });
                                         }}
                                         initialFocus
                                       />
@@ -495,10 +521,10 @@ export default function FormPreview({
                                         value={localMetadata.country[0]?.toString()}
                                         onChange={(country) => {
                                           const input = country.alpha3;
-                                          localMetadata.country = [
-                                            input,
-                                          ];
-                                          setLocalMetadata({ ...localMetadata });
+                                          localMetadata.country = [input];
+                                          setLocalMetadata({
+                                            ...localMetadata,
+                                          });
                                         }}
                                       />
                                     </FormControl>
@@ -536,9 +562,7 @@ export default function FormPreview({
                                       onChange={(occupation) => {
                                         const input = occupation.id;
                                         currentForm;
-                                        localMetadata.occupation = [
-                                          input,
-                                        ];
+                                        localMetadata.occupation = [input];
                                         setLocalMetadata({ ...localMetadata });
                                       }}
                                     />
@@ -574,10 +598,13 @@ export default function FormPreview({
                           type="number"
                           placeholder="0.01"
                           className="mt-1"
-                          value={(Number(localMetadata.rewardAmount) / 100_000_000).toString()}
+                          value={(
+                            Number(localMetadata.rewardAmount) / 100_000_000
+                          ).toString()}
                           min={0.01}
                           onChange={(e) => {
-                            let input = parseFloat(e.target.value) * 100_000_000;
+                            let input =
+                              parseFloat(e.target.value) * 100_000_000;
 
                             if (isNaN(input)) {
                               input = 0;
@@ -587,16 +614,17 @@ export default function FormPreview({
                               input = 1_000_000;
                             }
 
-                            localMetadata.rewardAmount = BigInt(Math.round(input));
+                            localMetadata.rewardAmount = BigInt(
+                              Math.round(input),
+                            );
                             setLocalMetadata({ ...localMetadata });
                             if (localMetadata.rewardAmount > 0) {
                               const maxRespondents = BigInt(
                                 localMetadata.maxRewardPool /
-                                localMetadata.rewardAmount,
+                                  localMetadata.rewardAmount,
                               );
 
-                              localMetadata.maxRespondent =
-                                maxRespondents;
+                              localMetadata.maxRespondent = maxRespondents;
                               setLocalMetadata({ ...localMetadata });
                             }
                           }}
@@ -611,26 +639,30 @@ export default function FormPreview({
                           type="number"
                           placeholder="0.1"
                           className="mt-1"
-                          value={(Number(localMetadata.maxRewardPool) / 100_000_000).toString()}
+                          value={(
+                            Number(localMetadata.maxRewardPool) / 100_000_000
+                          ).toString()}
                           min={currentForm.questions.length * 0.1}
                           step={0.1}
                           onChange={(e) => {
-                            let input = parseFloat(e.target.value) * 100_000_000;
+                            let input =
+                              parseFloat(e.target.value) * 100_000_000;
 
                             if (input < 1_000_000) {
                               input = 1_000_000;
                             }
 
-                            localMetadata.maxRewardPool = BigInt(Math.round(input));
+                            localMetadata.maxRewardPool = BigInt(
+                              Math.round(input),
+                            );
                             setLocalMetadata({ ...localMetadata });
                             if (localMetadata.rewardAmount > 0) {
                               const maxRespondents = BigInt(
                                 localMetadata.maxRewardPool /
-                                localMetadata.rewardAmount,
+                                  localMetadata.rewardAmount,
                               );
 
-                              localMetadata.maxRespondent =
-                                maxRespondents;
+                              localMetadata.maxRespondent = maxRespondents;
                               setLocalMetadata({ ...localMetadata });
                             }
                           }}
@@ -656,7 +688,10 @@ export default function FormPreview({
             </div>
 
             <DialogFooter className="px-6 py-4 border-t">
-              <Button variant="outline" onClick={() => setPublishModalOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setPublishModalOpen(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={handleSendICP}>Publish Form</Button>{' '}

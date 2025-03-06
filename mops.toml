@@ -1,4 +1,4 @@
 [dependencies]
-base = "0.7.4"
+base = "0.14.3"
 uuid = "1.0.0"
 deflate = "0.1.0"
