@@ -13,9 +13,11 @@ import Blob "mo:base/Blob";
 import Char "mo:base/Char";
 import Nat32 "mo:base/Nat32";
 import Nat8 "mo:base/Nat8";
+import Debug "mo:base/Debug";
 import Auth "canister:auth";
 import Ledger "canister:icp_ledger_canister_backend";
 import ICPIndex "canister:icp_index_canister";
+import Int "mo:base/Int";
 import UUID "mo:uuid/UUID";
 import Source "mo:uuid/async/SourceV4";
 
@@ -259,7 +261,8 @@ actor class Forms() {
   public shared func addFormResponse(
     caller : Principal,
     formId : Text,
-    answers : [AnswerType],
+    submitTime: Time,
+    answers : [AnswerType]
   ) : async Response<()> {
     // kalau questionnya g required n ga dijawab, masukin null aja di answernya
     // question yg tipenya multiple choice, kasih index dr jawabanny aj
@@ -282,11 +285,12 @@ actor class Forms() {
           return #err("Form is not yet published");
         };
 
-        let submitTime : Time = Time.now();
         let deadline : ?Time = f.metadata.deadline;
+        
         switch (deadline) {
           case (?d) {
             if (submitTime > d) {
+              Debug.print(Int.toText(submitTime) # ", " # Int.toText(d));
               return #err("Form is already closed");
             };
           };

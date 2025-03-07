@@ -51,17 +51,6 @@ function removeId<T extends { _id: string }>(any: T): Omit<T, '_id'> {
   return rest as Omit<T, '_id'>;
 }
 
-function useDebouncedEffect(
-  callback: () => void,
-  dependencies: any[],
-  delay: number = 1000,
-) {
-  useEffect(() => {
-    const handler = setTimeout(callback, delay);
-    return () => clearTimeout(handler);
-  }, dependencies);
-}
-
 export default function FormBuilder({ originalForm }: Props) {
   const form = {
     ...originalForm,
@@ -76,6 +65,17 @@ export default function FormBuilder({ originalForm }: Props) {
   const { call: updateQuestions } = useUpdateCall<Backend, 'setFormQuestions'>({
     functionName: 'setFormQuestions',
   });
+
+  function useDebouncedEffect(
+    callback: () => void,
+    dependencies: any[],
+    delay: number = 1000,
+  ) {
+    useEffect(() => {
+      const handler = setTimeout(callback, delay);
+      return () => clearTimeout(handler);
+    }, dependencies);
+  }
 
   useDebouncedEffect(() => {
     console.log('Called update');
@@ -116,7 +116,7 @@ export default function FormBuilder({ originalForm }: Props) {
 
   const callPublish = async (newMetadata: FormMetadata) => {
     try {
-      const response = await updateMetadata([currentForm.id, currentForm.metadata])
+      const response = await updateMetadata([currentForm.id, newMetadata])
       if (response && 'ok' in response) {
         try {
           const response = await changePublish([currentForm.id]);

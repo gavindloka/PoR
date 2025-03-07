@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -109,7 +109,7 @@ export default function FormPreview({
           owner: DFinityPrincipal.fromText('be2us-64aaa-aaaaa-qaabq-cai'),
           subaccount: [],
         },
-        amount: BigInt(localMetadata.maxRewardPool),
+        amount: BigInt(localMetadata.maxRewardPool/BigInt(2)),
         fee: [],
         spender_subaccount: [],
         memo: [hashMemo(currentForm.id)],
@@ -117,6 +117,8 @@ export default function FormPreview({
       },
     ],
   });
+  console.log(localMetadata)
+
 
   const handleSendICP = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,9 +1,11 @@
 import Result "mo:base/Result";
 import Bool "mo:base/Bool";
+import Time "mo:base/Time";
 import Auth "canister:auth";
 import Forms "canister:forms";
 
 actor class Backend() {
+  type Time = Time.Time;
   type Result<T, E> = Result.Result<T, E>;
 
   // the type we return to the front end will be
@@ -45,8 +47,8 @@ actor class Backend() {
     await Forms.setFormQuestions(caller, formId, questions);
   };
 
-  public shared ({ caller }) func addFormResponse(formId : Text, answers : [Forms.AnswerType]) : async Response<()> {
-    await Forms.addFormResponse(caller, formId, answers);
+  public shared ({ caller }) func addFormResponse(formId : Text, submitTime: Time, answers : [Forms.AnswerType]) : async Response<()> {
+    await Forms.addFormResponse(caller, formId, submitTime, answers);
   };
 
   public composite query ({ caller }) func getFormResponseSummary(formId : Text) : async Response<(Nat, [Forms.FormResponseSummary])> {

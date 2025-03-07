@@ -59,8 +59,14 @@ export default function AnswerForm() {
     functionName: 'addFormResponse',
     args: [],
     onLoading: (loading) => console.log('Loading:', loading),
-    onError: (error) => console.error('Error:', error),
-    onSuccess: (data) => console.log('Success:', data),
+    onError: (error) => {
+      console.error('Error:', error);
+      toast.error(`Error: ${error}`);
+    },
+    onSuccess: (data) => {
+      console.log('Success:', data);
+      toast.success('Form submitted successfully!');
+    },
   });
 
   const handleInputChange = (index: number, value: any) => {
@@ -103,6 +109,7 @@ export default function AnswerForm() {
   useEffect(() => {
     if (form && 'ok' in form) {
       console.log(form.ok);
+      console.log(new Date(Number(form.ok.metadata.deadline[0]) / 1000));
     }
   }, [form]);
 
@@ -126,7 +133,7 @@ export default function AnswerForm() {
     const answers = prepareFormSubmission()
     try {
       await addFormResponseCall([
-        id ?? '', answers
+        id ?? '', BigInt(Date.now()) * BigInt(1_000), answers
       ]);
     } catch (error) {
       console.error(error)
