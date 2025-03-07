@@ -141,7 +141,6 @@ export default function FormPreview({
 
     } catch (error) {
       console.error(error);
-      toast.error(error)
     }
   };
 
