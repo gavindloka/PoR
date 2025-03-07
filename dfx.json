@@ -87,7 +87,9 @@
         "icp_ledger_canister"
       ],
       "type": "assets",
-      "source": ["dist/"]
+      "source": [
+        "dist/"
+      ]
     },
     "backend_ai": {
       "metadata": [
@@ -99,6 +101,28 @@
       "package": "backend_ai",
       "type": "custom",
       "wasm": "target/wasm32-wasip1/release/backend_ai-ic.wasm"
+    },
+    "tokenizer_ai": {
+      "metadata": [
+        {
+          "name": "candid:service"
+        }
+      ],
+      "candid": "tokenizer_ai/backend.did",
+      "package": "tokenizer_ai",
+      "type": "custom",
+      "wasm": "tokenizer_ai/target/wasm32-wasip1/release/tokenizer_ai-ic.wasm"
+    },
+    "word_ai": {
+      "metadata": [
+        {
+          "name": "candid:service"
+        }
+      ],
+      "candid": "word_ai/backend.did",
+      "package": "word_ai",
+      "type": "custom",
+      "wasm": "word_ai/target/wasm32-wasip1/release/word_ai-ic.wasm"
     }
   },
   "defaults": {

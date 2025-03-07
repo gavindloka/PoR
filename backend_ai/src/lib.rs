@@ -5,12 +5,9 @@ use ic_stable_structures::{
 };
 
 use onnx::{setup, BoundingBox};
-use tokenizer::TOKENIZER_JSON_FILE;
 use std::cell::RefCell;
-
 mod onnx;
 mod storage;
-mod tokenizer;
 
 // WASI polyfill requires a virtual stable memory to store the file system.
 // You can replace `0` with any index up to `254`.
@@ -126,20 +123,6 @@ fn append_face_detection_model_bytes(bytes: Vec<u8>) {
 #[ic_cdk::update]
 fn append_face_recognition_model_bytes(bytes: Vec<u8>) {
     storage::append_bytes(FACE_RECOGNITION_FILE, bytes);
-}
-
-/// Appends the given chunk to the tokenizer json file.
-/// This is used for incremental chunk uploading of large files.
-#[ic_cdk::update]
-fn append_tokenizer_json_bytes(bytes: Vec<u8>) {
-    storage::append_bytes(TOKENIZER_JSON_FILE, bytes);
-}
-
-/// Clears the tokenizer json file.
-/// This is used for incremental chunk uploading of large files.
-#[ic_cdk::update]
-fn clear_tokenizer_json_bytes() {
-    storage::clear_bytes(FACE_RECOGNITION_FILE);
 }
 
 /// Once the model files have been incrementally uploaded,

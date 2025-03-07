@@ -1,5 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-    "backend_ai",
+    "backend_ai"
 ]
+exclude = ["tokenizer_ai", "word_ai"]
