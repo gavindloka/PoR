@@ -1,0 +1,24 @@
+type TokenizerEncoding = record {
+  tokens : vec text;
+  input_ids : vec int64;
+  attention_mask : vec int64;
+};
+
+type TokenizerResult = variant {
+  Ok : TokenizerEncoding;
+  Err : text;
+};
+
+service : {
+  /// Appends the given chunk to the tokenizer JSON file.
+  "append_tokenizer_json_bytes" : (bytes : blob) -> ();
+
+  /// Clears the tokenizer JSON file.
+  "clear_tokenizer_json_bytes" : () -> ();
+
+  /// Once the model files have been incrementally uploaded, this function loads them into memory.
+  "setup_models" : () -> ();
+
+  /// Tokenizes the input string.
+  "try_tokenizer" : (text) -> (TokenizerResult);
+};

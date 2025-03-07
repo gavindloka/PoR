@@ -1,0 +1,21 @@
+service : {
+  append_word_vector_model_bytes : (vec nat8) -> ();
+  clear_word_vector_model_bytes : () -> ();
+  setup_models : () -> (result : variant { Ok; Err : text });
+  next : () -> (result : variant { Ok; Err : text });
+  add_token : (
+    text,
+    record {
+      tokens : vec text;
+      input_ids : vec int64;
+      attention_mask : vec int64;
+    },
+  ) -> (result : variant { Ok; Err : text });
+  search_closest : (
+    record {
+      tokens : vec text;
+      input_ids : vec int64;
+      attention_mask : vec int64;
+    }
+  ) -> (result : variant { Ok : text; Err : text });
+};
