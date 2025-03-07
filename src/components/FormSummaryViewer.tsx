@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import {
+  Backend,
   FormResponseSummary,
   Response_3,
 } from '@/declarations/backend/backend.did';
@@ -14,82 +15,92 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
+import { useQueryCall } from '@ic-reactor/react';
+import { toast } from 'sonner';
 
-type Props = {};
+type Props = {
+  formId: string;
+};
 
-function FormSummaryViewer({}: Props) {
-  const data: Response_3 = {
-    ok: [
-      120n,
-      [
-        {
-          question: {
-            isRequired: true,
-            questionType: {
-              MultipleChoice: { options: ['Yes', 'No', 'Maybe'] },
-            },
-            questionTitle: 'Do you enjoy using our platform?',
-            formId: 'form123',
-          },
-          summary: { FrequencyArray: [50n, 40n, 30n] },
-        },
-        {
-          question: {
-            isRequired: true,
-            questionType: { Essay: null },
-            questionTitle: 'What improvements would you like to see?',
-            formId: 'form123',
-          },
-          summary: {
-            Essay: [
-              'More features',
-              'Better UI',
-              'Faster loading',
-              'Dark mode support',
-              'Improved mobile experience',
-              'More customization options',
-              'Better accessibility features',
-              'Faster response times',
-              'Offline mode support',
-              'More integrations with other apps',
-              'Better security features',
-              'More detailed analytics',
-              'Improved search functionality',
-              'Easier navigation',
-              'More user-friendly design',
-              'Better error messages',
-              'More frequent updates',
-              'Personalized recommendations',
-              'Improved notifications',
-              'More flexible pricing options',
-            ],
-          },
-        },
-        {
-          question: {
-            isRequired: false,
-            questionType: { Range: { minRange: 1n, maxRange: 10n } },
-            questionTitle: 'How satisfied are you with our service? (1-10)',
-            formId: 'form123',
-          },
-          summary: {
-            FrequencyMap: [
-              [1n, 5n],
-              [2n, 10n],
-              [3n, 15n],
-              [4n, 20n],
-              [5n, 25n],
-              [6n, 10n],
-              [7n, 5n],
-              [8n, 10n],
-              [9n, 15n],
-              [10n, 5n],
-            ],
-          },
-        },
-      ],
-    ],
-  };
+function FormSummaryViewer({ formId }: Props) {
+  // const data: Response_3 = {
+  //   ok: [
+  //     120n,
+  //     [
+  //       {
+  //         question: {
+  //           isRequired: true,
+  //           questionType: {
+  //             MultipleChoice: { options: ['Yes', 'No', 'Maybe'] },
+  //           },
+  //           questionTitle: 'Do you enjoy using our platform?',
+  //           formId: 'form123',
+  //         },
+  //         summary: { FrequencyArray: [50n, 40n, 30n] },
+  //       },
+  //       {
+  //         question: {
+  //           isRequired: true,
+  //           questionType: { Essay: null },
+  //           questionTitle: 'What improvements would you like to see?',
+  //           formId: 'form123',
+  //         },
+  //         summary: {
+  //           Essay: [
+  //             'More features',
+  //             'Better UI',
+  //             'Faster loading',
+  //             'Dark mode support',
+  //             'Improved mobile experience',
+  //             'More customization options',
+  //             'Better accessibility features',
+  //             'Faster response times',
+  //             'Offline mode support',
+  //             'More integrations with other apps',
+  //             'Better security features',
+  //             'More detailed analytics',
+  //             'Improved search functionality',
+  //             'Easier navigation',
+  //             'More user-friendly design',
+  //             'Better error messages',
+  //             'More frequent updates',
+  //             'Personalized recommendations',
+  //             'Improved notifications',
+  //             'More flexible pricing options',
+  //           ],
+  //         },
+  //       },
+  //       {
+  //         question: {
+  //           isRequired: false,
+  //           questionType: { Range: { minRange: 1n, maxRange: 10n } },
+  //           questionTitle: 'How satisfied are you with our service? (1-10)',
+  //           formId: 'form123',
+  //         },
+  //         summary: {
+  //           FrequencyMap: [
+  //             [1n, 5n],
+  //             [2n, 10n],
+  //             [3n, 15n],
+  //             [4n, 20n],
+  //             [5n, 25n],
+  //             [6n, 10n],
+  //             [7n, 5n],
+  //             [8n, 10n],
+  //             [9n, 15n],
+  //             [10n, 5n],
+  //           ],
+  //         },
+  //       },
+  //     ],
+  //   ],
+  // };
+
+  const { data, loading } = useQueryCall<Backend>({
+    functionName: 'getFormResponseSummary',
+    args: [formId],
+  });
+  const responseSummaries = data as Response_3 | undefined;
 
   const mapFrequencyArray = (
     responseSummary: FormResponseSummary,
@@ -110,9 +121,19 @@ function FormSummaryViewer({}: Props) {
     }
   };
 
-  const responseCount = data.ok[0];
-  const summaries = data.ok[1];
-  console.log(summaries);
+  if (loading) {
+    return <div>Fetching response summary</div>;
+  }
+  if (!responseSummaries) {
+    return <div>Fetching response summary</div>;
+  }
+  if ('err' in responseSummaries) {
+    toast.error(responseSummaries.err);
+    return <div>{responseSummaries.err}</div>;
+  }
+
+  const responseCount = responseSummaries.ok[0];
+  const summaries = responseSummaries.ok[1];
 
   return (
     <>

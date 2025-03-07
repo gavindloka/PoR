@@ -295,7 +295,7 @@ export default function FormBuilder({ originalForm }: Props) {
         </TabsContent>
 
         <TabsContent value="responses" className="mt-4">
-					<FormSummaryViewer />
+					<FormSummaryViewer formId={originalForm.id} />
         </TabsContent>
 
         <TabsContent value="preview" className="mt-4">

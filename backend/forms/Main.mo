@@ -409,7 +409,7 @@ actor class Forms() {
         for (response in responses.vals()) {
           let answers = response.answers;
 
-          for (i in Iter.range(0, answers.size())) {
+          for (i in Iter.range(0, answers.size() - 1)) {
             switch (answers[i]) {
               case (#Essay(answer)) {
                 // unpack null
