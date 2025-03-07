@@ -34,7 +34,7 @@ export const router = createBrowserRouter([
         element: <FormManagement />,
       },
       {
-        path: '/answer/forms/:id',
+        path: '/forms/:id/answer',
         element: <AnswerForm />,
       },
       {

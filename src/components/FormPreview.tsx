@@ -54,6 +54,8 @@ import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
 import { backend } from '@/declarations/backend';
 import { toast } from 'sonner';
+import { CategoryDropdown } from './ui/category-dropdown';
+import { useNavigate } from 'react-router';
 
 export type ICPLedger = typeof icp_ledger_canister;
 
@@ -66,6 +68,7 @@ export default function FormPreview({
   currentForm: LocalForm;
   callPublish: (newMetadata: FormMetadata) => void;
 }) {
+  const navigate =  useNavigate();
   const questions = currentForm.questions;
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -109,7 +112,7 @@ export default function FormPreview({
           owner: DFinityPrincipal.fromText('be2us-64aaa-aaaaa-qaabq-cai'),
           subaccount: [],
         },
-        amount: BigInt(localMetadata.maxRewardPool/BigInt(2)),
+        amount: BigInt(localMetadata.maxRewardPool / BigInt(2)),
         fee: [],
         spender_subaccount: [],
         memo: [hashMemo(currentForm.id)],
@@ -117,8 +120,7 @@ export default function FormPreview({
       },
     ],
   });
-  console.log(localMetadata)
-
+  console.log(localMetadata);
 
   const handleSendICP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,8 +136,12 @@ export default function FormPreview({
       }
       console.log('ICP successfully sent');
       callPublish(localMetadata);
+      toast.success("Survey Form Published")
+      setTimeout(() => navigate("/forms"), 2000);
+
     } catch (error) {
       console.error(error);
+      toast.error(error)
     }
   };
 
@@ -153,6 +159,7 @@ export default function FormPreview({
     city: z.string().min(2, { message: 'City must be at least 2 characters' }),
     country: z.string().min(1, { message: 'Country is required' }),
     occupation: z.string().min(1, { message: 'Occupation is required' }),
+    categories: z.string().min(1, { message: 'Category is required' }),
   });
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -163,6 +170,7 @@ export default function FormPreview({
       city: '',
       country: '',
       occupation: '',
+      categories: '',
     },
   });
 
@@ -420,6 +428,39 @@ export default function FormPreview({
                                   </Popover>
                                 </div>
                               </div>
+                            </CardContent>
+                          </Card>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-2">
+                        <FormControl>
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-lg">
+                                Category Settings
+                              </CardTitle>
+                              <CardDescription>
+                                Set the category of your survey
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <CategoryDropdown
+                                value={localMetadata.categories[0]?.toString()}
+                                onChange={(categories) => {
+                                  const input = categories.id;
+                                  currentForm;
+                                  localMetadata.categories = [input];
+                                  setLocalMetadata({ ...localMetadata });
+                                }}
+                              />
                             </CardContent>
                           </Card>
                         </FormControl>
