@@ -15,10 +15,11 @@ import { useQueryCall, useUpdateCall } from '@ic-reactor/react';
 import { Checkbox } from '@radix-ui/react-checkbox';
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 
 export default function AnswerForm() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, boolean>>({});
@@ -66,6 +67,7 @@ export default function AnswerForm() {
     onSuccess: (data) => {
       console.log('Success:', data);
       toast.success('Form submitted successfully!');
+      
     },
   });
 

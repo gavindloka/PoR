@@ -68,7 +68,7 @@ export default function FormPreview({
   currentForm: LocalForm;
   callPublish: (newMetadata: FormMetadata) => void;
 }) {
-  const navigate =  useNavigate();
+  const navigate = useNavigate();
   const questions = currentForm.questions;
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -136,9 +136,7 @@ export default function FormPreview({
       }
       console.log('ICP successfully sent');
       callPublish(localMetadata);
-      toast.success("Survey Form Published")
-      setTimeout(() => navigate("/forms"), 2000);
-
+      toast.success('Survey Form Published');
     } catch (error) {
       console.error(error);
     }
@@ -307,17 +305,23 @@ export default function FormPreview({
         </Card>
       ))}
 
-      <div className="flex justify-between">
-        <Button
-          onClick={handlePublish}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          Publish
-        </Button>
-        <Button type="button" variant="outline" onClick={() => setFormData({})}>
-          Clear form
-        </Button>
-      </div>
+      {!localMetadata.published && (
+        <div className="flex justify-between">
+          <Button
+            onClick={handlePublish}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            Publish
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setFormData({})}
+          >
+            Clear form
+          </Button>
+        </div>
+      )}
 
       {/* Modal */}
 
