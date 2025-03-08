@@ -16,6 +16,7 @@ Proof of Research is a blockchain-based platform built on the Internet Computer,
 
 - **Immutable Research Data:** Every survey response is permanently stored on the blockchain, ensuring transparency and integrity. Built on the Internet Computer (ICP), the system guarantees data immutability, preventing unauthorized alterations or deletions.
 - **AI-Verified Surveys:** Advanced AI validation ensures that survey responses are authentic, bias-free, and trustworthy. Powered by On-Chain Face Recognition AI, the system verifies participant identities securely without compromising privacy. This decentralized approach prevents duplicate submissions and enhances data reliability, making every response verifiable and tamper-proof.
+- **AI-Powered Semantic Search:** The platform integrates On-Chain AI with semantic-based search technology to provide highly relevant survey recommendations. By analyzing the meaning and context of research titles, the AI ensures that users are matched with surveys that align with their specific research interests.
 - **Incentivized Participation:** Participants are rewarded with ICP tokens, motivating them to provide high-quality and genuine responses. This blockchain-based incentive system ensures fair compensation while promoting active engagement in research. By integrating transparent and automated rewards, the platform fosters a sustainable ecosystem where both researchers and contributors benefit.
 <!--
 
