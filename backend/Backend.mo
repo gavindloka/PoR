@@ -47,7 +47,7 @@ actor class Backend() {
     await Forms.setFormQuestions(caller, formId, questions);
   };
 
-  public shared ({ caller }) func addFormResponse(formId : Text, submitTime: Time, answers : [Forms.AnswerType]) : async Response<()> {
+  public shared ({ caller }) func addFormResponse(formId : Text, submitTime : Time, answers : [Forms.AnswerType]) : async Response<()> {
     await Forms.addFormResponse(caller, formId, submitTime, answers);
   };
 
@@ -57,5 +57,9 @@ actor class Backend() {
 
   public shared ({ caller }) func changeFormPublish(formId : Text) : async Response<Bool> {
     await Forms.changeFormPublish(caller, formId);
+  };
+
+  public composite query func getAllForms() : async Response<[Forms.Form]> {
+    await Forms.getAllForms();
   };
 };

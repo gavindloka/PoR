@@ -28,17 +28,17 @@ export default function AnswerForm() {
     loading: loadingUser,
     data: rawUser,
     refetch,
-  } = useQueryCall<Backend>({
+  } = useQueryCall<Backend, 'getUser'>({
     functionName: 'getUser',
   });
 
-  const user = rawUser as Response_1 | undefined;
+  const user = rawUser;
 
-  const { data, loading, error } = useQueryCall<Backend>({
+  const { data, loading, error } = useQueryCall<Backend, 'getForm'>({
     functionName: 'getForm',
     args: [id ?? ''],
   });
-  const form = data as Response_4 | undefined;
+  const form = data;
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, boolean> = {};
@@ -56,9 +56,8 @@ export default function AnswerForm() {
     data: addResponseData,
     loading: loadingResponse,
     error: responseError,
-  } = useUpdateCall<Backend>({
+  } = useUpdateCall<Backend, 'addFormResponse'>({
     functionName: 'addFormResponse',
-    args: [],
     onLoading: (loading) => console.log('Loading:', loading),
     onError: (error) => {
       console.error('Error:', error);
@@ -67,7 +66,6 @@ export default function AnswerForm() {
     onSuccess: (data) => {
       console.log('Success:', data);
       toast.success('Form submitted successfully!');
-      
     },
   });
 
@@ -82,28 +80,28 @@ export default function AnswerForm() {
     const validationErrors: string[] = [];
     return questions.map((question, index) => {
       const value = formData[index];
-  
+
       if ('Essay' in question.questionType) {
         return { 'Essay': value ? [value] : [] };
-        
-      } 
+
+      }
       else if ('MultipleChoice' in question.questionType) {
-        return { 
-          'MultipleChoice': value !== undefined ? [BigInt(value)] : [] 
+        return {
+          'MultipleChoice': value !== undefined ? [BigInt(value)] : []
         };
-      } 
+      }
       else if ('Range' in question.questionType) {
-        return { 
-          'Range': value !== undefined ? [BigInt(value)] : [] 
+        return {
+          'Range': value !== undefined ? [BigInt(value)] : []
         };
-      } 
+      }
       else if ('Checkbox' in question.questionType) {
-        const checkboxes = Array.isArray(value) 
-          ? value.map(v => BigInt(v)) 
+        const checkboxes = Array.isArray(value)
+          ? value.map(v => BigInt(v))
           : [];
         return { 'Checkbox': checkboxes };
       }
-      
+
       return { 'Essay': [] };
     });
   };
@@ -126,7 +124,7 @@ export default function AnswerForm() {
     //   { 'Checkbox': [1n, 3n] },
     //   {'Range':[2n]}
     // ];
-  
+
     if (!validateForm()) {
       toast.error('Please fill all required fields.');
       return;
@@ -188,8 +186,8 @@ export default function AnswerForm() {
                   )}
                 </Label>
                 {errors[index] && (
-                <p className="text-red-500 text-sm">This field is required.</p>
-              )}
+                  <p className="text-red-500 text-sm">This field is required.</p>
+                )}
               </div>
 
               {'Essay' in question.questionType && (
@@ -257,8 +255,8 @@ export default function AnswerForm() {
                           const newValues = checked
                             ? [...currentValues, idx]
                             : currentValues.filter(
-                                (id: string) => parseInt(id) !== idx,
-                              );
+                              (id: string) => parseInt(id) !== idx,
+                            );
                           handleInputChange(index, newValues);
                         }}
                       >

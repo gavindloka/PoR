@@ -97,13 +97,13 @@ function FormSummaryViewer({ formId }: Props) {
   //   ],
   // };
 
-  const { data, loading } = useQueryCall<Backend>({
+  const { data, loading } = useQueryCall<Backend, 'getFormResponseSummary'>({
     functionName: 'getFormResponseSummary',
     args: [formId],
   });
-  const responseSummaries = data as Response_3 | undefined;
+  const responseSummaries = data;
 
-  const { data:formData, loading:loadingFormData, error } = useQueryCall<Backend>({
+  const { data: formData, loading: loadingFormData, error } = useQueryCall<Backend>({
     functionName: 'getForm',
     args: [formId || ''],
   });
