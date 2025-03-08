@@ -8,9 +8,10 @@ import TestPage from '@/pages/TestPage';
 import GetVerifiedPage from '@/pages/GetVerifiedPage';
 import ProfilePage from '@/pages/ProfilePage';
 import { Survey } from '@/pages/Survey';
-import FormManagement from '@/pages/MyForm';
+import FormManagement from '@/pages/MyFormPage';
 import BrowseSurveys from '@/pages/BrowsePage';
 import { WrapTest } from '@/components/WrapTest';
+import FormResponsePage from '@/pages/FormResponsePage';
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
       {
         path: '/forms/:id/answer',
         element: <AnswerForm />,
+      },
+      {
+        path: '/forms/:id/responses',
+        element: <FormResponsePage />,
       },
       {
         path: '/',

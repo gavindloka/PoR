@@ -1,4 +1,4 @@
-import { Plus, Edit, Trash2, Copy, MoreHorizontal } from 'lucide-react';
+import { Plus, Edit, MoreHorizontal, Eye } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -108,12 +108,20 @@ export default function FormManagement() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" /> Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Copy className="mr-2 h-4 w-4" /> Duplicate
-                      </DropdownMenuItem>
+                      {!form.metadata.published && (
+                        <Link to={`/forms/${form.id}`}>
+                          <DropdownMenuItem>
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                        </Link>
+                      )}
+                      {form.metadata.published && (
+                        <Link to={`/forms/${form.id}/responses`}>
+                          <DropdownMenuItem>
+                            <Eye className="mr-2 h-4 w-4" /> View Response
+                          </DropdownMenuItem>
+                        </Link>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

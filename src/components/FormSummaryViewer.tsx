@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import {
   Backend,
   FormResponseSummary,
   Response_3,
+  Response_4,
 } from '@/declarations/backend/backend.did';
 import { Label } from '@/components/ui/label';
 import {
@@ -102,6 +103,12 @@ function FormSummaryViewer({ formId }: Props) {
   });
   const responseSummaries = data as Response_3 | undefined;
 
+  const { data:formData, loading:loadingFormData, error } = useQueryCall<Backend>({
+    functionName: 'getForm',
+    args: [formId || ''],
+  });
+  const form = formData as Response_4 | undefined;
+
   const mapFrequencyArray = (
     responseSummary: FormResponseSummary,
     count: number,
@@ -132,6 +139,21 @@ function FormSummaryViewer({ formId }: Props) {
     return <div>{responseSummaries.err}</div>;
   }
 
+  if (!formId) {
+    return <div>Form id not found</div>;
+  }
+
+  if (!form) {
+    return <div>Error in getting form</div>;
+  }
+
+  if ('err' in form) {
+    return <div>{form.err}</div>;
+  }
+
+  const currForm = form.ok;
+  console.log(currForm.metadata)
+
   const responseCount = responseSummaries.ok[0];
   const summaries = responseSummaries.ok[1];
 
@@ -140,8 +162,11 @@ function FormSummaryViewer({ formId }: Props) {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-2xl">
-            {responseCount + ' Responses'}
+            {currForm.metadata.title}
           </CardTitle>
+          <CardDescription>
+            {responseCount + ' Responses'}
+          </CardDescription>
         </CardHeader>
       </Card>
       {summaries.map((responseSummary, index) => (
