@@ -1,7 +1,14 @@
+<p align="center">
+   <a href="https://github.com/gavindloka/PoR" target="_blank" rel="noopener noreferer">
+      <img width="150" src="./src/assets/logo-no-background.png" alt="Proof of Research Logo">
+   </a>
+</p>
 <h1 style="border-bottom: none; margin-bottom: 0" align="center">Proof of Research</h1>
 <h4 style="margin-top: 0.4rem; " align="center">Fair and Verified Research Surveys Powered by Decentralized AI</h4>
 
-<h2 style="margin-top: 3rem">📖 About Proof of Research</h2>
+<br>
+
+## 📖 About Proof of Research
 
 Proof of Research is a blockchain-based platform built on the Internet Computer, enabling research surveys to be permanently stored and verified. To enhance the integrity of the data, the platform utilizes Decentralized AI for facial verification. The system ensures that each participant is uniquely identified, avoiding dishonest or repeated submissions. As an incentive for participation, the platform rewards survey respondents with ICP tokens.
 
@@ -10,14 +17,18 @@ Proof of Research is a blockchain-based platform built on the Internet Computer,
 - **Immutable Research Data:** Every survey response is permanently stored on the blockchain, ensuring transparency and integrity. Built on the Internet Computer (ICP), the system guarantees data immutability, preventing unauthorized alterations or deletions.
 - **AI-Verified Surveys:** Advanced AI validation ensures that survey responses are authentic, bias-free, and trustworthy. Powered by On-Chain Face Recognition AI, the system verifies participant identities securely without compromising privacy. This decentralized approach prevents duplicate submissions and enhances data reliability, making every response verifiable and tamper-proof.
 - **Incentivized Participation:** Participants are rewarded with ICP tokens, motivating them to provide high-quality and genuine responses. This blockchain-based incentive system ensures fair compensation while promoting active engagement in research. By integrating transparent and automated rewards, the platform fosters a sustainable ecosystem where both researchers and contributors benefit.
+<!--
 
-# Project Setup Guide
+# 🛠️ Project Setup Guide
 
-This document provides detailed instructions on setting up, running, and troubleshooting the project.
+This document provides detailed instructions on setting up, running, and troubleshooting the project. -->
 
-## Prerequisites
+## 📦 Prerequisites
 
 Before running this project, ensure you have installed the following dependencies:
+
+- [`Node.js`](https://nodejs.org/en/) `>= 16`
+- [`dfx`](https://internetcomputer.org/docs/current/developer-docs/build/install-upgrade-remove) `>= 0.14`
 
 ### Install Rust and Required Tools
 
@@ -50,7 +61,7 @@ Before running this project, ensure you have installed the following dependencie
 
 ---
 
-## TL;DR - Quick Start Commands
+## 🚀 TL;DR - Quick Start Commands
 
 To quickly run the project, execute the following commands in order (assuming all requirements are installed and everything has been set up in order):
 
@@ -64,7 +75,7 @@ dfx canister call auth initialize $(dfx canister id backend_ai)
 ./upload-models-to-canister.sh
 ```
 
-## Running the Project
+## ▶️ Running the Project
 
 ### Step 1: Start the DFX (Internet Computer) Local Network
 
@@ -88,7 +99,7 @@ Before running the project, start the DFINITY Canister execution environment:
  npm start  # Start the application
 ```
 
-## Face Detection Model
+## 👁️ Face Detection Model
 
 ### Step 1: Download Face Detection Model
 
@@ -128,7 +139,7 @@ torch.onnx.export(resnet, input, "face-recognition.onnx", verbose=False, opset_v
 
 This will generate a `face-recognition.onnx` file. Copy it to the root of the repository.
 
-## Initializing AI Models
+## 🤖 Initializing AI Models
 
 After setting up the project and models, initialize the AI system with the following commands:
 
@@ -137,7 +148,7 @@ After setting up the project and models, initialize the AI system with the follo
  ./upload-models-to-canister.sh
 ```
 
-## Troubleshooting and Possible Issues
+## ⚠️ Troubleshooting and Possible Issues
 
 ### 1. Line Ending Issues (WSL Users)
 
