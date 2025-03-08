@@ -100,7 +100,8 @@
       "candid": "backend_ai/backend.did",
       "package": "backend_ai",
       "type": "custom",
-      "wasm": "target/wasm32-wasip1/release/backend_ai-ic.wasm"
+      "wasm": "target/wasm32-wasip1/release/backend_ai-ic.wasm",
+      "build":["./build.sh"]
     },
     "tokenizer_ai": {
       "metadata": [
@@ -111,7 +112,8 @@
       "candid": "tokenizer_ai/backend.did",
       "package": "tokenizer_ai",
       "type": "custom",
-      "wasm": "tokenizer_ai/target/wasm32-wasip1/release/tokenizer_ai-ic.wasm"
+      "wasm": "tokenizer_ai/target/wasm32-wasip1/release/tokenizer_ai-ic.wasm",
+      "build":["./build_tokenizer_ai.sh"]
     },
     "word_ai": {
       "metadata": [
@@ -122,7 +124,8 @@
       "candid": "word_ai/backend.did",
       "package": "word_ai",
       "type": "custom",
-      "wasm": "word_ai/target/wasm32-wasip1/release/word_ai-ic.wasm"
+      "wasm": "word_ai/target/wasm32-wasip1/release/word_ai-ic.wasm",
+      "build":["./build_word_ai.sh"]
     }
   },
   "defaults": {
