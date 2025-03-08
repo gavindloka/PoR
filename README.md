@@ -196,6 +196,15 @@ dfx deploy
 
 Then retry the initialization command.
 
+### 5. Canister Deployment Issues
+If you encounter an error while deploying canisters, such as canister id already taken or duplicate canister id, try deploying it manually using the following command:
+
+```sh
+dfx deploy [canister_name]
+```
+
+This bug happens often on specifically the word_ai canister and the internet_identity canister. If you happen to also have issues with internet_identity try deploying it manually as shown above.
+
 ## 💬 Contact Information
 
 If any questions occurred, or the need any discussion or details, please contact us:
