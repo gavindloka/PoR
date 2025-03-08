@@ -30,13 +30,13 @@ pub fn setup(word: Bytes) -> Result<String> {
     setup_word_vector(word)
 }
 
-fn get_model_inputs(model: &&Graph<TypedFact, Box<dyn TypedOp>>) -> String {
-    let mut inputs_info = String::new();
-    for (i, input) in model.input_outlets().iter().enumerate() {
-        if let Some(fact) = model.node(input.).op().downcast_ref::<TypedFact>() {
-            inputs_info.push_str(&format!("Input {}: {:?}\n", i, fact));
-        }
-    }
+fn get_model_inputs(_model: &&Graph<TypedFact, Box<dyn TypedOp>>) -> String {
+    let inputs_info = String::new();
+    // for (i, input) in model.input_outlets().iter().enumerate() {
+    //     if let Some(fact) = model.node(input.node).op().downcast_ref::<TypedFact>() {
+    //         inputs_info.push_str(&format!("Input {}: {:?}\n", i, fact));
+    //     }
+    // }
     inputs_info
 }
 
@@ -47,13 +47,13 @@ fn setup_word_vector(bytes: Bytes) -> Result<String> {
         .into_optimized()?
         .into_runnable()?;
     let model: &&Graph<TypedFact, Box<dyn TypedOp>> = &word.model();
-    let input_info = get_model_inputs(word.model()&);
+    // let input_info = get_model_inputs(word.model());
 
     WORD.with_borrow_mut(|m| {
         *m = Some(word);
     });
 
-    Ok(input_info) // Return the model input details
+    Ok("".to_owned()) 
 }
 
 pub fn internal_add_token(id: String, encoding: TokenizerEncoding) -> Result<()> {

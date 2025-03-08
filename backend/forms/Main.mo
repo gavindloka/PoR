@@ -261,8 +261,8 @@ actor class Forms() {
   public shared func addFormResponse(
     caller : Principal,
     formId : Text,
-    submitTime: Time,
-    answers : [AnswerType]
+    submitTime : Time,
+    answers : [AnswerType],
   ) : async Response<()> {
     // kalau questionnya g required n ga dijawab, masukin null aja di answernya
     // question yg tipenya multiple choice, kasih index dr jawabanny aj
@@ -286,7 +286,7 @@ actor class Forms() {
         };
 
         let deadline : ?Time = f.metadata.deadline;
-        
+
         switch (deadline) {
           case (?d) {
             if (submitTime > d) {
@@ -393,9 +393,7 @@ actor class Forms() {
                   #FrequencyMap(
                     Array.tabulate<(Nat, Nat)>(
                       question.maxRange - question.minRange + 1,
-                      func(i) {
-                        ((i + question.minRange), 0)
-                      },
+                      func(i) { ((i + question.minRange), 0) },
                     )
                   );
                 };
@@ -442,9 +440,14 @@ actor class Forms() {
                       case (#FrequencyArray(arr)) {
                         summaries[i] := {
                           question = summaries[i].question;
-                          summary = #FrequencyArray(Array.mapEntries<Nat, Nat>(arr, func(x, index) {
-                            if(index == a) x + 1 else x;
-                          }));
+                          summary = #FrequencyArray(
+                            Array.mapEntries<Nat, Nat>(
+                              arr,
+                              func(x, index) {
+                                if (index == a) x + 1 else x;
+                              },
+                            )
+                          );
                         };
                       };
                       case (_) {};
@@ -458,11 +461,16 @@ actor class Forms() {
                   switch (summaries[i].summary) {
                     case (#FrequencyArray(arr)) {
                       summaries[i] := {
-                          question = summaries[i].question;
-                          summary = #FrequencyArray(Array.mapEntries<Nat, Nat>(arr, func(x, index) {
-                            if(index == choice) x + 1 else x;
-                          }));
-                        };
+                        question = summaries[i].question;
+                        summary = #FrequencyArray(
+                          Array.mapEntries<Nat, Nat>(
+                            arr,
+                            func(x, index) {
+                              if (index == choice) x + 1 else x;
+                            },
+                          )
+                        );
+                      };
                     };
                     case (_) {};
                   };
@@ -477,9 +485,14 @@ actor class Forms() {
                       case (#FrequencyMap(map)) {
                         summaries[i] := {
                           question = summaries[i].question;
-                          summary = #FrequencyMap(Array.map<(Nat, Nat), (Nat, Nat)>(map, func((key, count)) {
-                            if(key == a) (key, count + 1) else (key, count);
-                          }));
+                          summary = #FrequencyMap(
+                            Array.map<(Nat, Nat), (Nat, Nat)>(
+                              map,
+                              func((key, count)) {
+                                if (key == a) (key, count + 1) else (key, count);
+                              },
+                            )
+                          );
                         };
                       };
                       case (_) {};
@@ -513,110 +526,114 @@ actor class Forms() {
     };
   };
 
-  public func hashMemo(formId: Text) : async Blob {
+  public func hashMemo(formId : Text) : async Blob {
     var hash : Nat = 0;
     let prime : Nat = 31;
     let modValue : Nat = 2 ** 64;
 
-    for (c in Text.toIter(formId)) {  
-        hash := (hash * prime + Nat32.toNat(Char.toNat32(c))) % modValue;
+    for (c in Text.toIter(formId)) {
+      hash := (hash * prime + Nat32.toNat(Char.toNat32(c))) % modValue;
     };
 
-        // Convert Nat to byte array (Uint8Array equivalent)
-    var bytes = Array.init<Nat8>(8, 0); 
+    // Convert Nat to byte array (Uint8Array equivalent)
+    var bytes = Array.init<Nat8>(8, 0);
     var temp = hash;
     for (i in Iter.range(0, 7)) {
-        bytes[i] := Nat8.fromNat(temp % 256);  // Use `mod 256` instead of `& 0xFF`
-        temp := temp / 256;  // Use integer division instead of `>>`
+      bytes[i] := Nat8.fromNat(temp % 256); // Use `mod 256` instead of `& 0xFF`
+      temp := temp / 256; // Use integer division instead of `>>`
     };
 
     Blob.fromArray(Array.freeze(bytes));
   };
 
-public shared func changeFormPublish(caller: Principal, formId: Text) : async Response<Bool> {
+  public shared func changeFormPublish(caller : Principal, formId : Text) : async Response<Bool> {
     switch (forms.get(formId)) {
-        case (?form) {  
-            try {
-                let results = await ICPIndex.get_account_transactions({
-                    max_results = 1;
-                    start = null;
-                    account = {
-                        owner = caller;
-                        subaccount = null;
-                    };
-                });
-
-                switch (results) {
-                    case (#Ok(txData)) {
-                        if (txData.transactions.size() == 0) {
-                            return #err("No transactions found");
-                        };
-
-                        let latestTx = txData.transactions[0];
-
-                        switch (latestTx.transaction.operation) {
-                            case (#Transfer(transferData)) {
-                                switch (latestTx.transaction.icrc1_memo) {
-                                    case (?memoBytes) {
-                                        let memoHash = memoBytes;
-                                        let expectedHash = await hashMemo(formId);
-
-                                        if (memoHash == expectedHash) {
-                                            let newForm : Form = {
-                                                id = form.id;
-                                                createdAt = form.createdAt;
-                                                creator = form.creator;
-                                                metadata = {
-                                                    published = true;
-                                                    title = form.metadata.title;
-                                                    deadline = form.metadata.deadline;
-                                                    minAge = form.metadata.minAge;
-                                                    maxAge = form.metadata.maxAge;
-                                                    country = form.metadata.country;
-                                                    city = form.metadata.city;
-                                                    occupation = form.metadata.occupation;
-                                                    description = form.metadata.description;
-                                                    categories = form.metadata.categories;
-                                                    maxRespondent = form.metadata.maxRespondent;
-                                                    maxRewardPool = form.metadata.maxRewardPool;
-                                                    rewardAmount = form.metadata.rewardAmount;
-                                                };
-                                                questions = form.questions;
-                                                responses = form.responses;
-                                            };
-
-                                            forms.put(formId, newForm);
-                                            return #ok(true); // Payment matches the form ID
-                                        } else {
-                                            return #err("Payment memo does not match form ID");
-                                        };
-                                    };
-                                    case (null) {
-                                        return #err("No memo found in transaction");
-                                    };
-                                };
-                            };
-                            case (_) {
-                                return #err("Latest transaction is not a payment");
-                            };
-                        };
-                    };
-                    case (#Err(err)) {
-                        return #err("Failed to get transactions: " # err.message);
-                    };
-                };
-            }catch (error) {
-                return #err("Error retrieving transactions");
+      case (?form) {
+        try {
+          let results = await ICPIndex.get_account_transactions({
+            max_results = 1;
+            start = null;
+            account = {
+              owner = caller;
+              subaccount = null;
             };
+          });
+
+          switch (results) {
+            case (#Ok(txData)) {
+              if (txData.transactions.size() == 0) {
+                return #err("No transactions found");
+              };
+
+              let latestTx = txData.transactions[0];
+
+              switch (latestTx.transaction.operation) {
+                case (#Transfer(transferData)) {
+                  switch (latestTx.transaction.icrc1_memo) {
+                    case (?memoBytes) {
+                      let memoHash = memoBytes;
+                      let expectedHash = await hashMemo(formId);
+
+                      if (memoHash == expectedHash) {
+                        let newForm : Form = {
+                          id = form.id;
+                          createdAt = form.createdAt;
+                          creator = form.creator;
+                          metadata = {
+                            published = true;
+                            title = form.metadata.title;
+                            deadline = form.metadata.deadline;
+                            minAge = form.metadata.minAge;
+                            maxAge = form.metadata.maxAge;
+                            country = form.metadata.country;
+                            city = form.metadata.city;
+                            occupation = form.metadata.occupation;
+                            description = form.metadata.description;
+                            categories = form.metadata.categories;
+                            maxRespondent = form.metadata.maxRespondent;
+                            maxRewardPool = form.metadata.maxRewardPool;
+                            rewardAmount = form.metadata.rewardAmount;
+                          };
+                          questions = form.questions;
+                          responses = form.responses;
+                        };
+
+                        forms.put(formId, newForm);
+                        return #ok(true); // Payment matches the form ID
+                      } else {
+                        return #err("Payment memo does not match form ID");
+                      };
+                    };
+                    case (null) {
+                      return #err("No memo found in transaction");
+                    };
+                  };
+                };
+                case (_) {
+                  return #err("Latest transaction is not a payment");
+                };
+              };
+            };
+            case (#Err(err)) {
+              return #err("Failed to get transactions: " # err.message);
+            };
+          };
+        } catch (error) {
+          return #err("Error retrieving transactions");
         };
-        case (null) {
-            return #err("Form not found");
-        };
+      };
+      case (null) {
+        return #err("Form not found");
+      };
     };
   };
 
-
-
-
-
+  public query func getAllForms() : async Response<[Form]> {
+    // ENDVALIDATION
+    var allForms : [Form] = [];
+    for ((_, form) in forms.entries()) {
+      allForms := Array.append(allForms, [form]);
+    };
+    #ok(allForms);
+  };
 };
