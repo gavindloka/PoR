@@ -184,3 +184,11 @@ dfx deploy
 ```
 
 Then retry the initialization command.
+
+## 💬 Contact Information
+
+If any questions occurred, or the need any discussion or details, please contact us:
+
+- **Email:** daviskelvin824@gmail.com
+- **Telegram:** https://t.me/davis824
+- **Discord:** daviskelvin824
