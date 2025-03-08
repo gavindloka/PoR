@@ -10,7 +10,7 @@
 
 ## 📖 About Proof of Research
 
-Proof of Research is a blockchain-based platform built on the Internet Computer, enabling research surveys to be permanently stored and verified. To enhance the integrity of the data, the platform utilizes Decentralized AI for facial verification. The system ensures that each participant is uniquely identified, avoiding dishonest or repeated submissions. As an incentive for participation, the platform rewards survey respondents with ICP tokens.
+Proof of Research is a blockchain-based platform built on the Internet Computer, enabling research surveys to be permanently stored and verified. To enhance the integrity of the data, the platform utilizes Decentralized AI for facial verification, ensuring that each participant is uniquely identified, avoiding dishonest or repeated submissions. As an incentive for participation, the platform rewards survey respondents with ICP tokens. Additionally, the platform uses On-Chain AI with semantic-based search to recommend the most relevant surveys to users.
 
 ## 📌 Features
 
